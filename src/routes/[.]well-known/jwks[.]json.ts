@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { jsonHeaders } from "@/lib/oauth-metadata";
 
 /** Public half of the broker's signing key, so anyone can verify grant receipts. */
-export const Route = createFileRoute("/_/well-known/jwks/json" as never)({
+export const Route = createFileRoute("/.well-known/jwks.json")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: jsonHeaders }),
