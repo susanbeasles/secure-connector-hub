@@ -23,6 +23,30 @@ export const Route = createFileRoute("/api/public/oauth/token")({
       OPTIONS: async () => new Response(null, { status: 204, headers: jsonHeaders }),
       POST: async ({ request }) => {
         const { exchangeCode, refreshGrant } = await import("@/lib/oauth.server");
+        const { verifyProof, mintNonce, DpopError } = await import("@/lib/dpop.server");
+
+        // The proof at the token endpoint binds the whole grant to the client key.
+        const proofHeader = request.headers.get("dpop");
+        let jkt: string | null = null;
+        if (proofHeader) {
+          try {
+            ({ jkt } = await verifyProof({
+              proof: proofHeader,
+              method: "POST",
+              url: request.url,
+            }));
+          } catch (e) {
+            const err = e as InstanceType<typeof DpopError>;
+            return new Response(
+              JSON.stringify({ error: err.code ?? "invalid_dpop_proof", error_description: err.message }),
+              {
+                status: 400,
+                headers: { ...jsonHeaders, "cache-control": "no-store", "DPoP-Nonce": await mintNonce() },
+              },
+            );
+          }
+        }
+
         let p: Record<string, string>;
         try {
           p = await params(request);
@@ -43,6 +67,7 @@ export const Route = createFileRoute("/api/public/oauth/token")({
                 clientSecret: secret,
                 redirectUri: p["redirect_uri"],
                 codeVerifier: p["code_verifier"],
+                jkt,
               }),
             );
           }
@@ -53,12 +78,26 @@ export const Route = createFileRoute("/api/public/oauth/token")({
                 refreshToken: p["refresh_token"],
                 clientId: p["client_id"],
                 clientSecret: secret,
+                jkt,
               }),
             );
           }
           return json({ error: "unsupported_grant_type" }, 400);
         } catch (e) {
           const message = (e as Error).message;
+          if (message === "dpop_required") {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_dpop_proof",
+                error_description:
+                  "This broker requires sender-constrained (DPoP) tokens. Send a DPoP proof with the token request.",
+              }),
+              {
+                status: 400,
+                headers: { ...jsonHeaders, "cache-control": "no-store", "DPoP-Nonce": await mintNonce() },
+              },
+            );
+          }
           const code = message === "invalid_client" ? "invalid_client" : "invalid_grant";
           return json({ error: code }, 400);
         }
