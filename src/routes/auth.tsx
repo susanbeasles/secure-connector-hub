@@ -29,6 +29,13 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Only same-origin relative paths survive; anything else falls back to the fleet. */
+function safeNext(raw: string | null): string {
+  if (!raw) return "/";
+  const value = decodeURIComponent(raw);
+  return value.startsWith("/") && !value.startsWith("//") ? value : "/";
+}
+
 function AuthPage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
@@ -36,21 +43,25 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const next = safeNext(
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next"),
+  );
 
   useEffect(() => {
-    if (!loading && session) void navigate({ to: "/" });
-  }, [loading, session, navigate]);
+    if (!loading && session) window.location.replace(next);
+  }, [loading, session, next]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+    const returnTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
     const res =
       mode === "signin"
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({
             email,
             password,
-            options: { emailRedirectTo: window.location.origin },
+            options: { emailRedirectTo: returnTo },
           });
     setBusy(false);
     if (res.error) {
@@ -61,19 +72,19 @@ function AuthPage() {
       toast.success("Check your email to confirm.");
       return;
     }
-    void navigate({ to: "/" });
+    window.location.replace(next);
   }
 
   async function sso(provider: "google" | "microsoft") {
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
     });
     if (result.error) {
       toast.error(result.error.message ?? "Sign-in failed");
       return;
     }
     if (result.redirected) return;
-    void navigate({ to: "/" });
+    window.location.replace(next);
   }
 
   return (

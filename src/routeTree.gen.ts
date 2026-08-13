@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ServersServerIdRouteImport } from './routes/servers.$serverId'
 import { Route as ServersNewRouteImport } from './routes/servers.new'
 import { Route as DotwellKnownOauthProtectedResourceSplatRouteImport } from './routes/[.]well-known/oauth-protected-resource.$'
@@ -38,6 +39,11 @@ const DotwellKnownOauthAuthorizationServerRoute =
     path: '/.well-known/oauth-authorization-server',
     getParentRoute: () => rootRouteImport,
   } as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServersServerIdRoute = ServersServerIdRouteImport.update({
   id: '/servers/$serverId',
   path: '/servers/$serverId',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
+  OauthConsentRoute: typeof OauthConsentRoute
   ServersServerIdRoute: typeof ServersServerIdRoute
   ServersNewRoute: typeof ServersNewRoute
   DotwellKnownOauthProtectedResourceSplatRoute: typeof DotwellKnownOauthProtectedResourceSplatRoute
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/.well-known/oauth-authorization-server'
       fullPath: '/.well-known/oauth-authorization-server'
       preLoaderRoute: typeof DotwellKnownOauthAuthorizationServerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/servers/$serverId': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DotwellKnownOauthAuthorizationServerRoute:
     DotwellKnownOauthAuthorizationServerRoute,
+  OauthConsentRoute: OauthConsentRoute,
   ServersServerIdRoute: ServersServerIdRoute,
   ServersNewRoute: ServersNewRoute,
   DotwellKnownOauthProtectedResourceSplatRoute:
