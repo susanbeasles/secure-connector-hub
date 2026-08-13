@@ -379,6 +379,7 @@ export type Database = {
           state: string | null
           status: string
           user_id: string | null
+          webauthn_credential_id: string | null
         }
         Insert: {
           client_id: string
@@ -399,6 +400,7 @@ export type Database = {
           state?: string | null
           status?: string
           user_id?: string | null
+          webauthn_credential_id?: string | null
         }
         Update: {
           client_id?: string
@@ -419,6 +421,7 @@ export type Database = {
           state?: string | null
           status?: string
           user_id?: string | null
+          webauthn_credential_id?: string | null
         }
         Relationships: [
           {
@@ -426,6 +429,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oauth_requests_webauthn_credential_id_fkey"
+            columns: ["webauthn_credential_id"]
+            isOneToOne: false
+            referencedRelation: "webauthn_credentials"
             referencedColumns: ["id"]
           },
         ]
