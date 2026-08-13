@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, content-type, dpop, mcp-protocol-version",
+  "Access-Control-Expose-Headers": "DPoP-Nonce, WWW-Authenticate",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
