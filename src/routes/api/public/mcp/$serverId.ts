@@ -36,9 +36,8 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
           { headers: { ...cors, "content-type": "application/json" } },
         ),
       POST: async ({ request, params }) => {
-        const { authenticateToken, executeTool, logEvent, toolToMcpSchema } = await import(
-          "@/lib/proxy.server"
-        );
+        const { executeTool, logEvent, toolToMcpSchema } = await import("@/lib/proxy.server");
+        const { authorizeBearer, sessionAllows } = await import("@/lib/oauth.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         let payload: { id?: unknown; method?: string; params?: any };
