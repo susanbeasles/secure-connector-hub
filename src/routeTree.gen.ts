@@ -11,9 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ServersServerIdRouteImport } from './routes/servers.$serverId'
 import { Route as ServersNewRouteImport } from './routes/servers.new'
+import { Route as DotwellKnownOauthProtectedResourceSplatRouteImport } from './routes/[.]well-known/oauth-protected-resource.$'
 import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
+import { Route as ApiPublicOauthAuthorizeRouteImport } from './routes/api/public/oauth/authorize'
+import { Route as ApiPublicOauthMetadataRouteImport } from './routes/api/public/oauth/metadata'
+import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/oauth/register'
+import { Route as ApiPublicOauthRevokeRouteImport } from './routes/api/public/oauth/revoke'
+import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,6 +31,17 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotwellKnownOauthAuthorizationServerRoute =
+  DotwellKnownOauthAuthorizationServerRouteImport.update({
+    id: '/.well-known/oauth-authorization-server',
+    path: '/.well-known/oauth-authorization-server',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServersServerIdRoute = ServersServerIdRouteImport.update({
@@ -35,64 +54,151 @@ const ServersNewRoute = ServersNewRouteImport.update({
   path: '/servers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthProtectedResourceSplatRoute =
+  DotwellKnownOauthProtectedResourceSplatRouteImport.update({
+    id: '/.well-known/oauth-protected-resource/$',
+    path: '/.well-known/oauth-protected-resource/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMcpServerIdRoute = ApiPublicMcpServerIdRouteImport.update({
   id: '/api/public/mcp/$serverId',
   path: '/api/public/mcp/$serverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthAuthorizeRoute = ApiPublicOauthAuthorizeRouteImport.update({
+  id: '/api/public/oauth/authorize',
+  path: '/api/public/oauth/authorize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthMetadataRoute = ApiPublicOauthMetadataRouteImport.update({
+  id: '/api/public/oauth/metadata',
+  path: '/api/public/oauth/metadata',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthRegisterRoute = ApiPublicOauthRegisterRouteImport.update({
+  id: '/api/public/oauth/register',
+  path: '/api/public/oauth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthRevokeRoute = ApiPublicOauthRevokeRouteImport.update({
+  id: '/api/public/oauth/revoke',
+  path: '/api/public/oauth/revoke',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthTokenRoute = ApiPublicOauthTokenRouteImport.update({
+  id: '/api/public/oauth/token',
+  path: '/api/public/oauth/token',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
+  '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
+  '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
+  '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
+  '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
+  '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
+  '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
+    | '/api/public/oauth/authorize'
+    | '/api/public/oauth/metadata'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
+    | '/api/public/oauth/token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
+    | '/api/public/oauth/authorize'
+    | '/api/public/oauth/metadata'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
+    | '/api/public/oauth/token'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/.well-known/oauth-authorization-server'
+    | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
+    | '/api/public/oauth/authorize'
+    | '/api/public/oauth/metadata'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
+    | '/api/public/oauth/token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
+  OauthConsentRoute: typeof OauthConsentRoute
   ServersServerIdRoute: typeof ServersServerIdRoute
   ServersNewRoute: typeof ServersNewRoute
+  DotwellKnownOauthProtectedResourceSplatRoute: typeof DotwellKnownOauthProtectedResourceSplatRoute
   ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
+  ApiPublicOauthAuthorizeRoute: typeof ApiPublicOauthAuthorizeRoute
+  ApiPublicOauthMetadataRoute: typeof ApiPublicOauthMetadataRoute
+  ApiPublicOauthRegisterRoute: typeof ApiPublicOauthRegisterRoute
+  ApiPublicOauthRevokeRoute: typeof ApiPublicOauthRevokeRoute
+  ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -111,6 +217,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-authorization-server': {
+      id: '/.well-known/oauth-authorization-server'
+      path: '/.well-known/oauth-authorization-server'
+      fullPath: '/.well-known/oauth-authorization-server'
+      preLoaderRoute: typeof DotwellKnownOauthAuthorizationServerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/servers/$serverId': {
       id: '/servers/$serverId'
       path: '/servers/$serverId'
@@ -125,11 +245,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource/$': {
+      id: '/.well-known/oauth-protected-resource/$'
+      path: '/.well-known/oauth-protected-resource/$'
+      fullPath: '/.well-known/oauth-protected-resource/$'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mcp/$serverId': {
       id: '/api/public/mcp/$serverId'
       path: '/api/public/mcp/$serverId'
       fullPath: '/api/public/mcp/$serverId'
       preLoaderRoute: typeof ApiPublicMcpServerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/authorize': {
+      id: '/api/public/oauth/authorize'
+      path: '/api/public/oauth/authorize'
+      fullPath: '/api/public/oauth/authorize'
+      preLoaderRoute: typeof ApiPublicOauthAuthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/metadata': {
+      id: '/api/public/oauth/metadata'
+      path: '/api/public/oauth/metadata'
+      fullPath: '/api/public/oauth/metadata'
+      preLoaderRoute: typeof ApiPublicOauthMetadataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/register': {
+      id: '/api/public/oauth/register'
+      path: '/api/public/oauth/register'
+      fullPath: '/api/public/oauth/register'
+      preLoaderRoute: typeof ApiPublicOauthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/revoke': {
+      id: '/api/public/oauth/revoke'
+      path: '/api/public/oauth/revoke'
+      fullPath: '/api/public/oauth/revoke'
+      preLoaderRoute: typeof ApiPublicOauthRevokeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/token': {
+      id: '/api/public/oauth/token'
+      path: '/api/public/oauth/token'
+      fullPath: '/api/public/oauth/token'
+      preLoaderRoute: typeof ApiPublicOauthTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -138,9 +300,19 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  DotwellKnownOauthAuthorizationServerRoute:
+    DotwellKnownOauthAuthorizationServerRoute,
+  OauthConsentRoute: OauthConsentRoute,
   ServersServerIdRoute: ServersServerIdRoute,
   ServersNewRoute: ServersNewRoute,
+  DotwellKnownOauthProtectedResourceSplatRoute:
+    DotwellKnownOauthProtectedResourceSplatRoute,
   ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
+  ApiPublicOauthAuthorizeRoute: ApiPublicOauthAuthorizeRoute,
+  ApiPublicOauthMetadataRoute: ApiPublicOauthMetadataRoute,
+  ApiPublicOauthRegisterRoute: ApiPublicOauthRegisterRoute,
+  ApiPublicOauthRevokeRoute: ApiPublicOauthRevokeRoute,
+  ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

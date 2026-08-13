@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { HealthDot } from "@/components/ui-bits";
+import { OAuthPanel } from "@/components/OAuthPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -187,7 +188,8 @@ function ServerConsole() {
         <TabsList>
           <TabsTrigger value="tools">Tools ({data?.tools.length ?? 0})</TabsTrigger>
           <TabsTrigger value="creds">Credentials</TabsTrigger>
-          <TabsTrigger value="access">Access</TabsTrigger>
+          <TabsTrigger value="oauth">OAuth grants</TabsTrigger>
+          <TabsTrigger value="access">Legacy bearer</TabsTrigger>
           <TabsTrigger value="approvals">Approvals</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
@@ -203,6 +205,10 @@ function ServerConsole() {
             creds={data?.creds ?? []}
             onChange={refresh}
           />
+        </TabsContent>
+
+        <TabsContent value="oauth">
+          <OAuthPanel serverId={server.id} endpoint={endpoint} />
         </TabsContent>
 
         <TabsContent value="access">
@@ -733,10 +739,12 @@ function AccessPanel({
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="panel space-y-3 p-5">
-        <h3 className="label-caps">Short-lived access tokens</h3>
-        <p className="text-xs text-muted-foreground">
-          Clients authenticate to the broker with these; only a hash is stored. Keep Cloudflare Access
-          in front of the endpoint so a leaked token alone is not enough.
+        <h3 className="label-caps">Legacy bearer tokens — fallback only</h3>
+        <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+          These tokens are unscoped: any client holding one can call every enabled tool until it
+          expires, and every use is logged as <span className="font-mono">auth.legacy_bearer_used</span>{" "}
+          with a warning injected into the client's session. Use OAuth grants unless a client cannot
+          speak OAuth 2.1.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">

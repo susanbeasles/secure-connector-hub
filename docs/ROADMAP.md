@@ -30,16 +30,21 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Copy-ready cURL + connector setup instructions for ChatGPT/Claude web
 - [x] One-time reveal UX hardening (masked by default, reveal/copy/dismiss, never re-fetchable)
 
-## Phase 4 — Ops hardening (next)
+## Phase 4 — Client authorization: OAuth 2.1 (done)
+- [x] Broker acts as its own authorization server: discovery metadata, dynamic client registration, PKCE-S256 authorization code, refresh grant, revocation
+- [x] Per-grant fine-grained scopes derived from the broker's enabled tools (`tool:<name>`)
+- [x] Consent screen: pick exact tools, grant lifetime (15m–7d), optional max-call budget
+- [x] Proxy enforces scopes on `tools/list` and `tools/call`; out-of-scope calls are denied and audited
+- [x] Grant inventory + instant revoke in the broker console
+- [x] Legacy bearer tokens demoted to an explicitly-labelled fallback — never silent (warn-level audit event + notice injected into the client session)
+
+## Phase 5 — Ops hardening (next)
 - [ ] Scheduled health checks (cron endpoint under `/api/public/`)
 - [ ] Log filtering/search + root-cause view (group by tool, error rate, p95 latency)
-- [ ] Rate limiting + per-token scope restriction (tool allowlist per token)
-- [ ] Automatic credential expiry warnings
-
-## Phase 5 — Auth model revisit (deferred by design)
-- [ ] Decide final gate: Cloudflare Access JWT verification in front of console + proxy
-- [ ] Optional: upstream OAuth2 authorization-code flow with PKCE + refresh rotation
-- [ ] Deployment notes: Cloudflare Zero Trust tunnel, no public network path
+- [ ] Rate limiting per grant
+- [ ] Automatic credential + grant expiry warnings
+- [ ] Cloudflare Access JWT verification in front of console + proxy; Zero Trust tunnel deployment notes
+- [ ] Upstream (provider-side) OAuth2 authorization-code flow with refresh rotation
 
 ## Phase 6 — Catalogue
 - [ ] Curated starter templates (GitHub, Linear, Notion, Slack) with scoped tool sets

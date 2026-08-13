@@ -208,6 +208,189 @@ export type Database = {
           },
         ]
       }
+      oauth_clients: {
+        Row: {
+          client_id: string
+          client_secret_hash: string | null
+          created_at: string
+          disabled: boolean
+          id: string
+          last_seen_at: string | null
+          name: string
+          redirect_uris: string[]
+          registration_kind: string
+          server_id: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          client_secret_hash?: string | null
+          created_at?: string
+          disabled?: boolean
+          id?: string
+          last_seen_at?: string | null
+          name?: string
+          redirect_uris?: string[]
+          registration_kind?: string
+          server_id: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          client_secret_hash?: string | null
+          created_at?: string
+          disabled?: boolean
+          id?: string
+          last_seen_at?: string | null
+          name?: string
+          redirect_uris?: string[]
+          registration_kind?: string
+          server_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_clients_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oauth_grants: {
+        Row: {
+          access_expires_at: string
+          access_token_hash: string
+          call_count: number
+          client_id: string
+          client_name: string
+          created_at: string
+          grant_expires_at: string
+          id: string
+          last_used_at: string | null
+          max_calls: number | null
+          refresh_token_hash: string | null
+          revoked_at: string | null
+          scopes: string[]
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          access_expires_at: string
+          access_token_hash: string
+          call_count?: number
+          client_id: string
+          client_name?: string
+          created_at?: string
+          grant_expires_at: string
+          id?: string
+          last_used_at?: string | null
+          max_calls?: number | null
+          refresh_token_hash?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          access_expires_at?: string
+          access_token_hash?: string
+          call_count?: number
+          client_id?: string
+          client_name?: string
+          created_at?: string
+          grant_expires_at?: string
+          id?: string
+          last_used_at?: string | null
+          max_calls?: number | null
+          refresh_token_hash?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_grants_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oauth_requests: {
+        Row: {
+          client_id: string
+          code_challenge: string
+          code_challenge_method: string
+          code_hash: string | null
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          grant_ttl_minutes: number
+          granted_scopes: string[]
+          id: string
+          max_calls: number | null
+          redirect_uri: string
+          requested_scopes: string[]
+          resource: string | null
+          server_id: string
+          state: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          code_challenge: string
+          code_challenge_method?: string
+          code_hash?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          grant_ttl_minutes?: number
+          granted_scopes?: string[]
+          id?: string
+          max_calls?: number | null
+          redirect_uri: string
+          requested_scopes?: string[]
+          resource?: string | null
+          server_id: string
+          state?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          code_challenge?: string
+          code_challenge_method?: string
+          code_hash?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          grant_ttl_minutes?: number
+          granted_scopes?: string[]
+          id?: string
+          max_calls?: number | null
+          redirect_uri?: string
+          requested_scopes?: string[]
+          resource?: string | null
+          server_id?: string
+          state?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_requests_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servers: {
         Row: {
           auth_type: Database["public"]["Enums"]["auth_kind"]

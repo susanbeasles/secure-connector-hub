@@ -36,9 +36,8 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
           { headers: { ...cors, "content-type": "application/json" } },
         ),
       POST: async ({ request, params }) => {
-        const { authenticateToken, executeTool, logEvent, toolToMcpSchema } = await import(
-          "@/lib/proxy.server"
-        );
+        const { executeTool, logEvent, toolToMcpSchema } = await import("@/lib/proxy.server");
+        const { authorizeBearer, sessionAllows } = await import("@/lib/oauth.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         let payload: { id?: unknown; method?: string; params?: any };
@@ -52,16 +51,30 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
 
         if (method.startsWith("notifications/")) return new Response(null, { status: 202, headers: cors });
 
+        const origin = new URL(request.url).origin;
+        const resourceMetadata = `${origin}/.well-known/oauth-protected-resource/api/public/mcp/${params.serverId}`;
         const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
-        const session = await authenticateToken(params.serverId, token);
+        const session = await authorizeBearer(params.serverId, token);
         if (!session) {
           return new Response(
             JSON.stringify({
               jsonrpc: "2.0",
               id,
-              error: { code: -32001, message: "Unauthorized: missing, expired or revoked token" },
+              error: {
+                code: -32001,
+                message:
+                  "Unauthorized: no valid OAuth grant. Start the authorization flow at " +
+                  `${origin}/api/public/oauth/authorize`,
+              },
             }),
-            { status: 401, headers: { ...cors, "content-type": "application/json" } },
+            {
+              status: 401,
+              headers: {
+                ...cors,
+                "content-type": "application/json",
+                "WWW-Authenticate": `Bearer realm="aegis", resource_metadata="${resourceMetadata}"`,
+              },
+            },
           );
         }
 
@@ -75,31 +88,67 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
 
         if (method === "ping") return rpc(id, {});
 
+        const legacyNotice =
+          session.kind === "legacy"
+            ? " WARNING: this session uses an unscoped legacy bearer token with full access to every enabled tool. Ask the operator to switch this client to OAuth 2.1 for per-tool, expiring grants."
+            : "";
+
+        if (session.kind === "legacy" && method === "initialize") {
+          await logEvent({
+            user_id: session.userId,
+            server_id: session.serverId,
+            level: "warn",
+            event: "auth.legacy_bearer_used",
+            message: "Legacy unscoped bearer token used — no per-tool scoping applied",
+          });
+        }
+
         if (method === "initialize") {
           return rpc(id, {
             protocolVersion: "2025-06-18",
             capabilities: { tools: { listChanged: false } },
             serverInfo: { name: server.slug, title: server.name, version: "1.0.0" },
-            instructions: server.instructions || server.description,
+            instructions: (server.instructions || server.description) + legacyNotice,
           });
         }
 
-        const { data: tools } = await supabaseAdmin
+        const { data: allTools } = await supabaseAdmin
           .from("tools")
           .select("*")
           .eq("server_id", server.id)
           .eq("enabled", true)
           .order("name");
 
+        // A grant can only ever see the tools its scopes cover.
+        const tools = (allTools ?? []).filter((t) => sessionAllows(session, t.name as string));
+
         if (method === "tools/list") {
-          return rpc(id, { tools: (tools ?? []).map((t) => toolToMcpSchema(t as never)) });
+          return rpc(id, { tools: tools.map((t) => toolToMcpSchema(t as never)) });
         }
 
         if (method === "tools/call") {
           const name = String(payload.params?.name ?? "");
           const args = (payload.params?.arguments ?? {}) as Record<string, unknown>;
-          const tool = (tools ?? []).find((t) => t.name === name);
-          if (!tool) return textResult(id, `Tool "${name}" is not enabled on this server.`, true);
+          const tool = tools.find((t) => t.name === name);
+          if (!tool) {
+            const known = (allTools ?? []).some((t) => t.name === name);
+            if (known) {
+              await logEvent({
+                user_id: session.userId,
+                server_id: session.serverId,
+                level: "warn",
+                event: "oauth.scope_denied",
+                tool_name: name,
+                message: `${session.clientName} called ${name} without the tool:${name} scope`,
+              });
+              return textResult(
+                id,
+                `Out of scope: this grant does not include "${name}". Ask the operator to authorize it — the current grant expires ${session.expiresAt}.`,
+                true,
+              );
+            }
+            return textResult(id, `Tool "${name}" is not enabled on this server.`, true);
+          }
 
           if (tool.approval === "always_ask") {
             const { data: approved } = await supabaseAdmin
