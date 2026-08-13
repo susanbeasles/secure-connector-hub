@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Fingerprint, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { startAuthentication } from "@simplewebauthn/browser";
 import {
   approveAuthorizationRequest,
   denyAuthorizationRequest,
   getAuthorization,
+  grantAssertionOptions,
 } from "@/lib/oauth.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -115,9 +117,30 @@ function ConsentPage() {
     .filter(([, v]) => v)
     .map(([k]) => k);
 
+  const policy = data.server.webauthn_policy;
+  const selectedMethods = data.scopes
+    .filter((s) => chosen.includes(s.scope))
+    .map((s) => s.method.toUpperCase());
+  const touchRequired =
+    policy === "always" ||
+    (policy === "delete" && selectedMethods.includes("DELETE")) ||
+    (policy === "write" && selectedMethods.some((m) => m !== "GET" && m !== "HEAD"));
+
   async function decide(approve: boolean) {
     setBusy(true);
     try {
+      let assertion: unknown;
+      if (approve && touchRequired) {
+        try {
+          const options = await grantAssertionOptions({
+            data: { requestId, origin: window.location.origin },
+          });
+          assertion = await startAuthentication({ optionsJSON: options as never });
+        } catch (e) {
+          // No usable key is only survivable when the broker still allows bootstrap.
+          if (!data!.server.webauthn_sso_fallback) throw e;
+        }
+      }
       const res = approve
         ? await approveAuthorizationRequest({
             data: {
@@ -125,6 +148,8 @@ function ConsentPage() {
               scopes: ["mcp:discover", ...chosen],
               ttlMinutes: Number(ttl),
               maxCalls: maxCalls ? Math.max(1, Number(maxCalls)) : null,
+              origin: window.location.origin,
+              assertion,
             },
           })
         : await denyAuthorizationRequest({ data: { requestId } });
