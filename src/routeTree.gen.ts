@@ -16,6 +16,7 @@ import { Route as ServersNewRouteImport } from './routes/servers.new'
 import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
 import { Route as ApiPublicOauthAuthorizeRouteImport } from './routes/api/public/oauth/authorize'
 import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/oauth/register'
+import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ApiPublicOauthRegisterRoute = ApiPublicOauthRegisterRouteImport.update({
   path: '/api/public/oauth/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthTokenRoute = ApiPublicOauthTokenRouteImport.update({
+  id: '/api/public/oauth/token',
+  path: '/api/public/oauth/token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
   ApiPublicOauthAuthorizeRoute: typeof ApiPublicOauthAuthorizeRoute
   ApiPublicOauthRegisterRoute: typeof ApiPublicOauthRegisterRoute
+  ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/token': {
+      id: '/api/public/oauth/token'
+      path: '/api/public/oauth/token'
+      fullPath: '/api/public/oauth/token'
+      preLoaderRoute: typeof ApiPublicOauthTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
   ApiPublicOauthAuthorizeRoute: ApiPublicOauthAuthorizeRoute,
   ApiPublicOauthRegisterRoute: ApiPublicOauthRegisterRoute,
+  ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
