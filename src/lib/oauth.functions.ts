@@ -21,6 +21,8 @@ export const approveAuthorizationRequest = createServerFn({ method: "POST" })
         scopes: z.array(z.string().max(200)).max(200),
         ttlMinutes: z.number().int().min(5).max(43200),
         maxCalls: z.number().int().min(1).max(10000).nullable(),
+        origin: z.string().url(),
+        assertion: z.unknown().optional(),
       })
       .parse(input),
   )
@@ -43,4 +45,23 @@ export const revokeGrant = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { revokeGrantById } = await import("./oauth.server");
     return revokeGrantById(context.userId, data.grantId);
+  });
+
+const originInput = z.object({ requestId: z.string().uuid(), origin: z.string().url() });
+
+/** Challenge for the hardware touch that authorizes one grant. */
+export const grantAssertionOptions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => originInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { authorizationDetails } = await import("./oauth.server");
+    const { assertionOptions } = await import("./webauthn.server");
+    const details = await authorizationDetails(data.requestId);
+    if (details.server.user_id !== context.userId) throw new Error("Not your broker");
+    return assertionOptions({
+      userId: context.userId,
+      origin: data.origin,
+      requestId: data.requestId,
+      policy: details.server.webauthn_authenticator as never,
+    });
   });

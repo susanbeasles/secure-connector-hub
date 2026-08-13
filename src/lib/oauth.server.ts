@@ -155,7 +155,7 @@ export async function authorizationDetails(requestId: string) {
   const client = await findClient(req.client_id);
   const { data: server } = await db
     .from("servers")
-    .select("id, name, slug, base_url, user_id")
+    .select("id, name, slug, base_url, user_id, dpop_mode, webauthn_policy, webauthn_authenticator, webauthn_sso_fallback")
     .eq("id", req.server_id)
     .maybeSingle();
   return {
@@ -165,7 +165,17 @@ export async function authorizationDetails(requestId: string) {
     clientId: req.client_id as string,
     redirectUri: req.redirect_uri as string,
     requestedScopes: (req.requested_scopes ?? []) as string[],
-    server: server as { id: string; name: string; slug: string; base_url: string; user_id: string },
+    server: server as {
+      id: string;
+      name: string;
+      slug: string;
+      base_url: string;
+      user_id: string;
+      dpop_mode: string;
+      webauthn_policy: string;
+      webauthn_authenticator: string;
+      webauthn_sso_fallback: boolean;
+    },
     scopes: await serverScopes(req.server_id),
   };
 }
@@ -182,6 +192,8 @@ export async function approveAuthorization(input: {
   scopes: string[];
   ttlMinutes: number;
   maxCalls: number | null;
+  origin: string;
+  assertion?: unknown;
 }) {
   const db = await admin();
   const details = await authorizationDetails(input.requestId);
@@ -190,6 +202,37 @@ export async function approveAuthorization(input: {
 
   const allowed = new Set([SCOPE_DISCOVERY, ...details.scopes.map((s) => s.scope)]);
   const granted = input.scopes.filter((s) => allowed.has(s));
+
+  // A grant that hands out write power can be made to cost a physical touch.
+  const webauthn = await import("./webauthn.server");
+  let credentialId: string | null = null;
+  if (
+    webauthn.policyRequiresKey(
+      details.server.webauthn_policy as never,
+      details.scopes,
+      granted,
+    )
+  ) {
+    if (input.assertion) {
+      credentialId = await webauthn.verifyAssertion({
+        userId: input.userId,
+        origin: input.origin,
+        response: input.assertion as never,
+      });
+    } else {
+      const keys = await webauthn.listKeys(input.userId);
+      if (keys.length || !details.server.webauthn_sso_fallback) {
+        throw new Error("This grant requires a hardware key touch");
+      }
+      await logEvent({
+        user_id: input.userId,
+        server_id: details.server.id,
+        level: "warn",
+        event: "webauthn.fallback_used",
+        message: "Grant approved on SSO alone — no hardware key registered",
+      });
+    }
+  }
   const code = randomToken("ztx", 32);
 
   const { error } = await db
@@ -201,6 +244,7 @@ export async function approveAuthorization(input: {
       grant_ttl_minutes: input.ttlMinutes,
       max_calls: input.maxCalls,
       code_hash: await sha256Hex(code),
+      webauthn_credential_id: credentialId,
       expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
     })
     .eq("id", input.requestId);
@@ -211,7 +255,12 @@ export async function approveAuthorization(input: {
     server_id: details.server.id,
     event: "oauth.authorization_approved",
     message: `${details.clientName} granted ${granted.length} scope(s) for ${input.ttlMinutes} min`,
-    meta: { scopes: granted, max_calls: input.maxCalls, client_id: details.clientId },
+    meta: {
+      scopes: granted,
+      max_calls: input.maxCalls,
+      client_id: details.clientId,
+      hardware_key: credentialId ? "verified" : "not_required",
+    },
   });
 
   const { data: req } = await db
@@ -261,16 +310,32 @@ async function verifyPkce(challenge: string, verifier: string): Promise<boolean>
 type TokenBundle = {
   access_token: string;
   refresh_token: string | null;
-  token_type: "Bearer";
+  token_type: "Bearer" | "DPoP";
   expires_in: number;
   scope: string;
 };
 
-async function issueBundle(grantRow: {
-  id: string;
-  scopes: string[];
-  grant_expires_at: string;
-}): Promise<TokenBundle> {
+/** Broker default plus per-client override, resolved once per token request. */
+export async function grantDpopMode(serverId: string, clientId: string) {
+  const db = await admin();
+  const [{ data: server }, { data: client }] = await Promise.all([
+    db.from("servers").select("dpop_mode").eq("id", serverId).maybeSingle(),
+    db.from("oauth_clients").select("dpop_mode").eq("client_id", clientId).maybeSingle(),
+  ]);
+  const { effectiveMode } = await import("./dpop.server");
+  return effectiveMode(String(server?.dpop_mode ?? "preferred"), (client?.dpop_mode as string) ?? null);
+}
+
+async function issueBundle(
+  grantRow: {
+    id: string;
+    scopes: string[];
+    grant_expires_at: string;
+    refresh_token_hash?: string | null;
+    refresh_generation?: number | null;
+  },
+  jkt: string | null,
+): Promise<TokenBundle> {
   const db = await admin();
   const access = randomToken("zta", 32);
   const refresh = randomToken("ztr", 32);
@@ -283,13 +348,16 @@ async function issueBundle(grantRow: {
     .update({
       access_token_hash: await sha256Hex(access),
       refresh_token_hash: await sha256Hex(refresh),
+      retired_refresh_hash: grantRow.refresh_token_hash ?? null,
+      refresh_generation: (grantRow.refresh_generation ?? 0) + 1,
       access_expires_at: new Date(accessExpiry).toISOString(),
+      ...(jkt ? { cnf_jkt: jkt } : {}),
     })
     .eq("id", grantRow.id);
   return {
     access_token: access,
     refresh_token: refresh,
-    token_type: "Bearer",
+    token_type: jkt ? "DPoP" : "Bearer",
     expires_in: Math.max(1, Math.floor((accessExpiry - Date.now()) / 1000)),
     scope: grantRow.scopes.join(" "),
   };
@@ -301,6 +369,7 @@ export async function exchangeCode(input: {
   clientSecret: string | null;
   redirectUri: string;
   codeVerifier: string;
+  jkt: string | null;
 }): Promise<TokenBundle> {
   const db = await admin();
   const hash = await sha256Hex(input.code);
@@ -323,6 +392,13 @@ export async function exchangeCode(input: {
   const operatorId = req.user_id as string | null;
   if (!operatorId) throw new Error("invalid_grant");
 
+  const mode = await grantDpopMode(req.server_id as string, input.clientId);
+  if (mode === "required" && !input.jkt) throw new Error("dpop_required");
+  const jkt = mode === "disabled" ? null : input.jkt;
+  if (jkt) {
+    await db.from("oauth_clients").update({ dpop_observed: true }).eq("client_id", input.clientId);
+  }
+
   await db.from("oauth_requests").update({ consumed_at: new Date().toISOString() }).eq("id", req.id);
 
   const grantExpiry = new Date(Date.now() + req.grant_ttl_minutes * 60_000).toISOString();
@@ -334,12 +410,14 @@ export async function exchangeCode(input: {
       client_id: req.client_id,
       client_name: client.name,
       scopes: req.granted_scopes,
+      webauthn_credential_id: req.webauthn_credential_id,
       access_token_hash: "pending",
       access_expires_at: new Date().toISOString(),
       grant_expires_at: grantExpiry,
       max_calls: req.max_calls,
+      cnf_jkt: jkt,
     })
-    .select("id, scopes, grant_expires_at")
+    .select("id, scopes, grant_expires_at, refresh_token_hash, refresh_generation")
     .single();
   if (error) throw new Error(error.message);
 
@@ -353,16 +431,17 @@ export async function exchangeCode(input: {
     server_id: req.server_id,
     event: "oauth.grant_issued",
     message: `Access granted to ${client.name} until ${grantExpiry}`,
-    meta: { scopes: req.granted_scopes, max_calls: req.max_calls },
+    meta: { scopes: req.granted_scopes, max_calls: req.max_calls, sender_constrained: Boolean(jkt) },
   });
 
-  return issueBundle(grant as never);
+  return issueBundle(grant as never, jkt);
 }
 
 export async function refreshGrant(input: {
   refreshToken: string;
   clientId: string;
   clientSecret: string | null;
+  jkt: string | null;
 }): Promise<TokenBundle> {
   const db = await admin();
   const hash = await sha256Hex(input.refreshToken);
@@ -371,7 +450,28 @@ export async function refreshGrant(input: {
     .select("*")
     .eq("refresh_token_hash", hash)
     .maybeSingle();
-  if (!grant || grant.revoked_at) throw new Error("invalid_grant");
+
+  if (!grant) {
+    // A retired refresh token coming back means it was captured: burn the chain.
+    const { data: stolen } = await db
+      .from("oauth_grants")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("retired_refresh_hash", hash)
+      .is("revoked_at", null)
+      .select("id, user_id, server_id, client_name")
+      .maybeSingle();
+    if (stolen) {
+      await logEvent({
+        user_id: stolen.user_id,
+        server_id: stolen.server_id,
+        level: "error",
+        event: "oauth.refresh_reuse_detected",
+        message: `Retired refresh token replayed for ${stolen.client_name} — entire grant revoked`,
+      });
+    }
+    throw new Error("invalid_grant");
+  }
+  if (grant.revoked_at) throw new Error("invalid_grant");
   if (grant.client_id !== input.clientId) throw new Error("invalid_client");
   if (new Date(grant.grant_expires_at).getTime() < Date.now()) throw new Error("invalid_grant");
   const client = await findClient(input.clientId);
@@ -381,7 +481,11 @@ export async function refreshGrant(input: {
       throw new Error("invalid_client");
     }
   }
-  return issueBundle(grant as never);
+  const mode = await grantDpopMode(grant.server_id as string, input.clientId);
+  if ((mode === "required" || grant.cnf_jkt) && !input.jkt) throw new Error("dpop_required");
+  if (grant.cnf_jkt && input.jkt && grant.cnf_jkt !== input.jkt) throw new Error("invalid_grant");
+
+  return issueBundle(grant as never, grant.cnf_jkt ?? input.jkt);
 }
 
 export type AuthorizedSession = {
@@ -392,12 +496,14 @@ export type AuthorizedSession = {
   grantId: string | null;
   clientName: string;
   expiresAt: string;
+  boundJkt: string | null;
 };
 
 /** Resolve a bearer token to a session. OAuth grants carry scopes; legacy tokens are unscoped. */
 export async function authorizeBearer(
   serverId: string,
   token: string | null,
+  proofJkt?: string | null,
 ): Promise<AuthorizedSession | null> {
   if (!token) return null;
   const db = await admin();
@@ -414,6 +520,8 @@ export async function authorizeBearer(
     if (new Date(data.access_expires_at).getTime() < Date.now()) return null;
     if (new Date(data.grant_expires_at).getTime() < Date.now()) return null;
     if (data.max_calls !== null && data.call_count >= data.max_calls) return null;
+    // A sender-constrained token is worthless without its key.
+    if (data.cnf_jkt && data.cnf_jkt !== proofJkt) return null;
     await db
       .from("oauth_grants")
       .update({ last_used_at: new Date().toISOString(), call_count: data.call_count + 1 })
@@ -426,6 +534,7 @@ export async function authorizeBearer(
       grantId: data.id,
       clientName: data.client_name,
       expiresAt: data.grant_expires_at,
+      boundJkt: data.cnf_jkt ?? null,
     };
   }
 
@@ -440,6 +549,7 @@ export async function authorizeBearer(
     grantId: null,
     clientName: "Legacy bearer client",
     expiresAt: legacy.expires_at,
+    boundJkt: null,
   };
 }
 

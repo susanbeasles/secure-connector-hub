@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Fingerprint, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { startAuthentication } from "@simplewebauthn/browser";
 import {
   approveAuthorizationRequest,
   denyAuthorizationRequest,
   getAuthorization,
+  grantAssertionOptions,
 } from "@/lib/oauth.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -115,9 +117,30 @@ function ConsentPage() {
     .filter(([, v]) => v)
     .map(([k]) => k);
 
+  const policy = data.server.webauthn_policy;
+  const selectedMethods = data.scopes
+    .filter((s) => chosen.includes(s.scope))
+    .map((s) => s.method.toUpperCase());
+  const touchRequired =
+    policy === "always" ||
+    (policy === "delete" && selectedMethods.includes("DELETE")) ||
+    (policy === "write" && selectedMethods.some((m) => m !== "GET" && m !== "HEAD"));
+
   async function decide(approve: boolean) {
     setBusy(true);
     try {
+      let assertion: unknown;
+      if (approve && touchRequired) {
+        try {
+          const options = await grantAssertionOptions({
+            data: { requestId, origin: window.location.origin },
+          });
+          assertion = await startAuthentication({ optionsJSON: options as never });
+        } catch (e) {
+          // No usable key is only survivable when the broker still allows bootstrap.
+          if (!data!.server.webauthn_sso_fallback) throw e;
+        }
+      }
       const res = approve
         ? await approveAuthorizationRequest({
             data: {
@@ -125,6 +148,8 @@ function ConsentPage() {
               scopes: ["mcp:discover", ...chosen],
               ttlMinutes: Number(ttl),
               maxCalls: maxCalls ? Math.max(1, Number(maxCalls)) : null,
+              origin: window.location.origin,
+              assertion,
             },
           })
         : await denyAuthorizationRequest({ data: { requestId } });
@@ -149,6 +174,13 @@ function ConsentPage() {
       <p className="mt-2 break-all text-xs text-muted-foreground">
         Redirects to <span className="font-mono">{data.redirectUri}</span>
       </p>
+
+      {touchRequired && (
+        <p className="mt-3 flex items-start gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <Fingerprint className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          This broker requires a hardware-key touch before issuing a grant at this power level.
+        </p>
+      )}
 
       <div className="mt-5 space-y-2">
         <div className="flex items-center justify-between">
@@ -237,7 +269,16 @@ function ConsentPage() {
 
       <div className="mt-6 flex gap-3">
         <Button className="flex-1" disabled={busy} onClick={() => void decide(true)}>
-          {busy ? <Loader2 className="size-4 animate-spin" /> : `Approve ${chosen.length} tool(s)`}
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <>
+              {touchRequired && <Fingerprint className="mr-2 size-4" />}
+              {touchRequired
+                ? `Touch key to approve ${chosen.length} tool(s)`
+                : `Approve ${chosen.length} tool(s)`}
+            </>
+          )}
         </Button>
         <Button variant="outline" disabled={busy} onClick={() => void decide(false)}>
           Cancel connection

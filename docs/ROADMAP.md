@@ -38,7 +38,19 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Grant inventory + instant revoke in the broker console
 - [x] Legacy bearer tokens demoted to an explicitly-labelled fallback — never silent (warn-level audit event + notice injected into the client session)
 
-## Phase 5 — Ops hardening (next)
+## Phase 5 — Non-replayable tokens (done)
+
+- DPoP (RFC 9449) proofs on every MCP call: single-use `jti`, broker-issued
+  rolling `DPoP-Nonce`, method/URL/token binding, replay table.
+- Grants sender-constrained to the client key thumbprint (`cnf.jkt`); a stolen
+  token is inert without the private key.
+- Refresh rotation with reuse detection — replay nukes the grant chain.
+- Broker signing key in AWS KMS (HSM) when configured, WebCrypto otherwise;
+  public half published at `/.well-known/jwks.json`.
+- WebAuthn touch on the consent screen, policy per broker: never / writes /
+  destructive / always, and physical-key-only, device-key, or any authenticator.
+
+## Phase 6 — Ops hardening (next)
 - [ ] Scheduled health checks (cron endpoint under `/api/public/`)
 - [ ] Log filtering/search + root-cause view (group by tool, error rate, p95 latency)
 - [ ] Rate limiting per grant

@@ -208,12 +208,35 @@ export type Database = {
           },
         ]
       }
+      dpop_proofs: {
+        Row: {
+          created_at: string
+          expires_at: string
+          jkt: string
+          jti: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          jkt: string
+          jti: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          jkt?: string
+          jti?: string
+        }
+        Relationships: []
+      }
       oauth_clients: {
         Row: {
           client_id: string
           client_secret_hash: string | null
           created_at: string
           disabled: boolean
+          dpop_mode: string
+          dpop_observed: boolean
           id: string
           last_seen_at: string | null
           name: string
@@ -227,6 +250,8 @@ export type Database = {
           client_secret_hash?: string | null
           created_at?: string
           disabled?: boolean
+          dpop_mode?: string
+          dpop_observed?: boolean
           id?: string
           last_seen_at?: string | null
           name?: string
@@ -240,6 +265,8 @@ export type Database = {
           client_secret_hash?: string | null
           created_at?: string
           disabled?: boolean
+          dpop_mode?: string
+          dpop_observed?: boolean
           id?: string
           last_seen_at?: string | null
           name?: string
@@ -265,16 +292,20 @@ export type Database = {
           call_count: number
           client_id: string
           client_name: string
+          cnf_jkt: string | null
           created_at: string
           grant_expires_at: string
           id: string
           last_used_at: string | null
           max_calls: number | null
+          refresh_generation: number
           refresh_token_hash: string | null
+          retired_refresh_hash: string | null
           revoked_at: string | null
           scopes: string[]
           server_id: string
           user_id: string
+          webauthn_credential_id: string | null
         }
         Insert: {
           access_expires_at: string
@@ -282,16 +313,20 @@ export type Database = {
           call_count?: number
           client_id: string
           client_name?: string
+          cnf_jkt?: string | null
           created_at?: string
           grant_expires_at: string
           id?: string
           last_used_at?: string | null
           max_calls?: number | null
+          refresh_generation?: number
           refresh_token_hash?: string | null
+          retired_refresh_hash?: string | null
           revoked_at?: string | null
           scopes?: string[]
           server_id: string
           user_id: string
+          webauthn_credential_id?: string | null
         }
         Update: {
           access_expires_at?: string
@@ -299,16 +334,20 @@ export type Database = {
           call_count?: number
           client_id?: string
           client_name?: string
+          cnf_jkt?: string | null
           created_at?: string
           grant_expires_at?: string
           id?: string
           last_used_at?: string | null
           max_calls?: number | null
+          refresh_generation?: number
           refresh_token_hash?: string | null
+          retired_refresh_hash?: string | null
           revoked_at?: string | null
           scopes?: string[]
           server_id?: string
           user_id?: string
+          webauthn_credential_id?: string | null
         }
         Relationships: [
           {
@@ -340,6 +379,7 @@ export type Database = {
           state: string | null
           status: string
           user_id: string | null
+          webauthn_credential_id: string | null
         }
         Insert: {
           client_id: string
@@ -360,6 +400,7 @@ export type Database = {
           state?: string | null
           status?: string
           user_id?: string | null
+          webauthn_credential_id?: string | null
         }
         Update: {
           client_id?: string
@@ -380,6 +421,7 @@ export type Database = {
           state?: string | null
           status?: string
           user_id?: string | null
+          webauthn_credential_id?: string | null
         }
         Relationships: [
           {
@@ -387,6 +429,13 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oauth_requests_webauthn_credential_id_fkey"
+            columns: ["webauthn_credential_id"]
+            isOneToOne: false
+            referencedRelation: "webauthn_credentials"
             referencedColumns: ["id"]
           },
         ]
@@ -397,6 +446,7 @@ export type Database = {
           base_url: string
           created_at: string
           description: string
+          dpop_mode: string
           enabled: boolean
           health: Database["public"]["Enums"]["health_state"]
           id: string
@@ -407,12 +457,16 @@ export type Database = {
           slug: string
           updated_at: string
           user_id: string
+          webauthn_authenticator: string
+          webauthn_policy: string
+          webauthn_sso_fallback: boolean
         }
         Insert: {
           auth_type?: Database["public"]["Enums"]["auth_kind"]
           base_url?: string
           created_at?: string
           description?: string
+          dpop_mode?: string
           enabled?: boolean
           health?: Database["public"]["Enums"]["health_state"]
           id?: string
@@ -423,12 +477,16 @@ export type Database = {
           slug: string
           updated_at?: string
           user_id?: string
+          webauthn_authenticator?: string
+          webauthn_policy?: string
+          webauthn_sso_fallback?: boolean
         }
         Update: {
           auth_type?: Database["public"]["Enums"]["auth_kind"]
           base_url?: string
           created_at?: string
           description?: string
+          dpop_mode?: string
           enabled?: boolean
           health?: Database["public"]["Enums"]["health_state"]
           id?: string
@@ -439,6 +497,9 @@ export type Database = {
           slug?: string
           updated_at?: string
           user_id?: string
+          webauthn_authenticator?: string
+          webauthn_policy?: string
+          webauthn_sso_fallback?: boolean
         }
         Relationships: []
       }
@@ -503,6 +564,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webauthn_challenges: {
+        Row: {
+          challenge: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          request_id: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          request_id?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          request_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          aaguid: string | null
+          attachment: string
+          backed_up: boolean
+          counter: number
+          created_at: string
+          credential_id: string
+          id: string
+          label: string
+          last_used_at: string | null
+          public_key: string
+          transports: string[]
+          user_id: string
+        }
+        Insert: {
+          aaguid?: string | null
+          attachment?: string
+          backed_up?: boolean
+          counter?: number
+          created_at?: string
+          credential_id: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          public_key: string
+          transports?: string[]
+          user_id: string
+        }
+        Update: {
+          aaguid?: string | null
+          attachment?: string
+          backed_up?: boolean
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          public_key?: string
+          transports?: string[]
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
