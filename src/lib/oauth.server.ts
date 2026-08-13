@@ -155,7 +155,7 @@ export async function authorizationDetails(requestId: string) {
   const client = await findClient(req.client_id);
   const { data: server } = await db
     .from("servers")
-    .select("id, name, slug, base_url, user_id")
+    .select("id, name, slug, base_url, user_id, dpop_mode, webauthn_policy, webauthn_authenticator, webauthn_sso_fallback")
     .eq("id", req.server_id)
     .maybeSingle();
   return {
@@ -165,7 +165,17 @@ export async function authorizationDetails(requestId: string) {
     clientId: req.client_id as string,
     redirectUri: req.redirect_uri as string,
     requestedScopes: (req.requested_scopes ?? []) as string[],
-    server: server as { id: string; name: string; slug: string; base_url: string; user_id: string },
+    server: server as {
+      id: string;
+      name: string;
+      slug: string;
+      base_url: string;
+      user_id: string;
+      dpop_mode: string;
+      webauthn_policy: string;
+      webauthn_authenticator: string;
+      webauthn_sso_fallback: boolean;
+    },
     scopes: await serverScopes(req.server_id),
   };
 }
@@ -182,6 +192,8 @@ export async function approveAuthorization(input: {
   scopes: string[];
   ttlMinutes: number;
   maxCalls: number | null;
+  origin: string;
+  assertion?: unknown;
 }) {
   const db = await admin();
   const details = await authorizationDetails(input.requestId);
@@ -190,6 +202,37 @@ export async function approveAuthorization(input: {
 
   const allowed = new Set([SCOPE_DISCOVERY, ...details.scopes.map((s) => s.scope)]);
   const granted = input.scopes.filter((s) => allowed.has(s));
+
+  // A grant that hands out write power can be made to cost a physical touch.
+  const webauthn = await import("./webauthn.server");
+  let credentialId: string | null = null;
+  if (
+    webauthn.policyRequiresKey(
+      details.server.webauthn_policy as never,
+      details.scopes,
+      granted,
+    )
+  ) {
+    if (input.assertion) {
+      credentialId = await webauthn.verifyAssertion({
+        userId: input.userId,
+        origin: input.origin,
+        response: input.assertion as never,
+      });
+    } else {
+      const keys = await webauthn.listKeys(input.userId);
+      if (keys.length || !details.server.webauthn_sso_fallback) {
+        throw new Error("This grant requires a hardware key touch");
+      }
+      await logEvent({
+        user_id: input.userId,
+        server_id: details.server.id,
+        level: "warn",
+        event: "webauthn.fallback_used",
+        message: "Grant approved on SSO alone — no hardware key registered",
+      });
+    }
+  }
   const code = randomToken("ztx", 32);
 
   const { error } = await db
@@ -201,6 +244,7 @@ export async function approveAuthorization(input: {
       grant_ttl_minutes: input.ttlMinutes,
       max_calls: input.maxCalls,
       code_hash: await sha256Hex(code),
+      webauthn_credential_id: credentialId,
       expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
     })
     .eq("id", input.requestId);
@@ -211,7 +255,12 @@ export async function approveAuthorization(input: {
     server_id: details.server.id,
     event: "oauth.authorization_approved",
     message: `${details.clientName} granted ${granted.length} scope(s) for ${input.ttlMinutes} min`,
-    meta: { scopes: granted, max_calls: input.maxCalls, client_id: details.clientId },
+    meta: {
+      scopes: granted,
+      max_calls: input.maxCalls,
+      client_id: details.clientId,
+      hardware_key: credentialId ? "verified" : "not_required",
+    },
   });
 
   const { data: req } = await db
