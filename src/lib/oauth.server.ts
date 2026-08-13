@@ -349,7 +349,7 @@ export async function exchangeCode(input: {
     .eq("client_id", input.clientId);
 
   await logEvent({
-    user_id: req.user_id,
+    user_id: operatorId,
     server_id: req.server_id,
     event: "oauth.grant_issued",
     message: `Access granted to ${client.name} until ${grantExpiry}`,
