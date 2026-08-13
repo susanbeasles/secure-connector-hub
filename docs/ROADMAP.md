@@ -25,10 +25,12 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] `always_ask` approval gate with pending queue + one-shot consumption
 - [x] Full request audit (status, duration, tool, level)
 
-## Phase 3 — Client integration (next)
-- [ ] One-click `mcp.json` / config snippets per client (Claude Desktop, Codex/Cursor, generic remote)
-- [ ] Copy-ready cURL + connector setup instructions for ChatGPT/Claude web
-- [ ] Token QR / one-time reveal UX hardening (show once, never re-fetchable)
+## Phase 3 — Client integration (done)
+- [x] One-click config snippets per client (Claude Desktop, Cursor/Codex, VS Code, generic remote)
+- [x] Copy-ready cURL + connector setup instructions for ChatGPT/Claude web
+- [x] One-time reveal UX hardening (masked by default, reveal/copy/dismiss, never re-fetchable)
+
+## Phase 4 — Ops hardening (next)
 
 ## Phase 4 — Ops hardening
 - [ ] Scheduled health checks (cron endpoint under `/api/public/`)
