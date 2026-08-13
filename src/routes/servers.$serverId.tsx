@@ -655,20 +655,80 @@ function AccessPanel({
   const [label, setLabel] = useState("claude-desktop");
   const [ttl, setTtl] = useState("168");
   const [issued, setIssued] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
-  const config = JSON.stringify(
-    {
-      mcpServers: {
-        [name || "aegis"]: {
-          type: "http",
-          url: endpoint,
-          headers: { Authorization: `Bearer ${issued ?? "<paste-token>"}` },
+  const key = name || "aegis";
+  const bearer = issued ?? "<paste-token>";
+
+  const snippets: Record<string, { label: string; hint: string; body: string }> = {
+    claude: {
+      label: "Claude Desktop",
+      hint: "~/Library/Application Support/Claude/claude_desktop_config.json (macOS) or %APPDATA%\\Claude\\ (Windows)",
+      body: JSON.stringify(
+        {
+          mcpServers: {
+            [key]: { type: "http", url: endpoint, headers: { Authorization: `Bearer ${bearer}` } },
+          },
         },
-      },
+        null,
+        2,
+      ),
     },
-    null,
-    2,
-  );
+    cursor: {
+      label: "Cursor / Codex",
+      hint: "~/.cursor/mcp.json or .cursor/mcp.json in the repo root",
+      body: JSON.stringify(
+        {
+          mcpServers: {
+            [key]: { url: endpoint, headers: { Authorization: `Bearer ${bearer}` } },
+          },
+        },
+        null,
+        2,
+      ),
+    },
+    vscode: {
+      label: "VS Code",
+      hint: ".vscode/mcp.json — remote streamable-HTTP server",
+      body: JSON.stringify(
+        {
+          servers: {
+            [key]: { type: "http", url: endpoint, headers: { Authorization: `Bearer ${bearer}` } },
+          },
+        },
+        null,
+        2,
+      ),
+    },
+    web: {
+      label: "ChatGPT / Claude web",
+      hint: "Add a custom remote connector in the client's settings using these values",
+      body: [
+        `Name:        ${key}`,
+        `Transport:   Streamable HTTP (remote MCP)`,
+        `Server URL:  ${endpoint}`,
+        `Auth:        Custom header`,
+        `Header name: Authorization`,
+        `Header val:  Bearer ${bearer}`,
+        ``,
+        `Note: the broker sits behind Cloudflare Access. Web clients must reach it`,
+        `through a hostname the Access policy allows for service tokens.`,
+      ].join("\n"),
+    },
+    curl: {
+      label: "cURL",
+      hint: "Smoke-test the broker before wiring a client",
+      body: [
+        `curl -sS ${endpoint} \\`,
+        `  -H 'authorization: Bearer ${bearer}' \\`,
+        `  -H 'content-type: application/json' \\`,
+        `  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | jq`,
+      ].join("\n"),
+    },
+  };
+
+  const [tab, setTab] = useState("claude");
+  const active = snippets[tab]!;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -696,7 +756,8 @@ function AccessPanel({
                 data: { serverId, label, ttlHours: Math.max(1, Number(ttl) || 1) },
               });
               setIssued((res as { token: string }).token);
-              toast.success("Token issued — copy it now, it is not shown again");
+              setRevealed(false);
+              toast.success("Token issued — reveal and copy it now, it is not shown again");
               onChange();
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Could not issue token");
@@ -706,9 +767,41 @@ function AccessPanel({
           <KeyRound className="size-4" /> Issue token
         </Button>
         {issued ? (
-          <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+          <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-3">
             <p className="label-caps">One-time value</p>
-            <code className="mt-1 block break-all font-mono text-xs">{issued}</code>
+            <code className="block break-all font-mono text-xs">
+              {revealed ? issued : "•".repeat(44)}
+            </code>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setRevealed((v) => !v)}>
+                {revealed ? "Hide" : "Reveal"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void navigator.clipboard.writeText(issued);
+                  toast.success("Token copied");
+                }}
+              >
+                <Copy className="size-4" /> Copy
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-auto"
+                onClick={() => {
+                  setIssued(null);
+                  setRevealed(false);
+                }}
+              >
+                Dismiss
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Not retrievable later — the broker only keeps a SHA-256 hash. Dismiss once it is stored
+              in your client config.
+            </p>
           </div>
         ) : null}
         <div className="divide-y divide-border">
@@ -756,19 +849,34 @@ function AccessPanel({
             </Button>
           </div>
         </div>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="flex-wrap">
+            {Object.entries(snippets).map(([k, s]) => (
+              <TabsTrigger key={k} value={k}>
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className="space-y-1.5">
-          <Label>mcp.json / claude_desktop_config.json</Label>
-          <Textarea readOnly rows={12} value={config} className="font-mono text-xs" />
+          <p className="text-xs text-muted-foreground">{active.hint}</p>
+          <Textarea readOnly rows={14} value={active.body} className="font-mono text-xs" />
           <Button
             variant="outline"
             className="w-full"
             onClick={() => {
-              void navigator.clipboard.writeText(config);
-              toast.success("Config copied");
+              void navigator.clipboard.writeText(active.body);
+              toast.success(`${active.label} snippet copied`);
             }}
           >
-            <Copy className="size-4" /> Copy config
+            <Copy className="size-4" /> Copy {active.label} snippet
           </Button>
+          {!issued ? (
+            <p className="text-[11px] text-muted-foreground">
+              Issue a token to inline it here — otherwise replace{" "}
+              <code className="font-mono">&lt;paste-token&gt;</code> yourself.
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
