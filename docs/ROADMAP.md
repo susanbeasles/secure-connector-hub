@@ -31,8 +31,6 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] One-time reveal UX hardening (masked by default, reveal/copy/dismiss, never re-fetchable)
 
 ## Phase 4 — Ops hardening (next)
-
-## Phase 4 — Ops hardening
 - [ ] Scheduled health checks (cron endpoint under `/api/public/`)
 - [ ] Log filtering/search + root-cause view (group by tool, error rate, p95 latency)
 - [ ] Rate limiting + per-token scope restriction (tool allowlist per token)
