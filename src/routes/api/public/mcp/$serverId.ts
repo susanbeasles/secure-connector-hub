@@ -6,9 +6,13 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
-function rpc(id: unknown, result: unknown) {
+function rpc(id: unknown, result: unknown, nonce?: string) {
   return new Response(JSON.stringify({ jsonrpc: "2.0", id, result }), {
-    headers: { ...cors, "content-type": "application/json" },
+    headers: {
+      ...cors,
+      "content-type": "application/json",
+      ...(nonce ? { "DPoP-Nonce": nonce } : {}),
+    },
   });
 }
 
@@ -38,6 +42,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
       POST: async ({ request, params }) => {
         const { executeTool, logEvent, toolToMcpSchema } = await import("@/lib/proxy.server");
         const { authorizeBearer, sessionAllows } = await import("@/lib/oauth.server");
+        const { verifyProof, mintNonce, effectiveMode, DpopError } = await import("@/lib/dpop.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         let payload: { id?: unknown; method?: string; params?: any };
@@ -53,8 +58,72 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
 
         const origin = new URL(request.url).origin;
         const resourceMetadata = `${origin}/.well-known/oauth-protected-resource/api/public/mcp/${params.serverId}`;
-        const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
-        const session = await authorizeBearer(params.serverId, token);
+        const token = request.headers.get("authorization")?.replace(/^(Bearer|DPoP)\s+/i, "") ?? null;
+
+        const { data: brokerPolicy } = await supabaseAdmin
+          .from("servers")
+          .select("dpop_mode")
+          .eq("id", params.serverId)
+          .maybeSingle();
+        const mode = effectiveMode(String(brokerPolicy?.dpop_mode ?? "preferred"), null);
+        const proofHeader = request.headers.get("dpop");
+
+        // Every proof is single-use: bound to this method, URL, token and nonce.
+        let proofJkt: string | null = null;
+        if (proofHeader && mode !== "disabled") {
+          try {
+            ({ jkt: proofJkt } = await verifyProof({
+              proof: proofHeader,
+              method: "POST",
+              url: request.url,
+              accessToken: token,
+              requireNonce: true,
+            }));
+          } catch (e) {
+            const err = e as InstanceType<typeof DpopError>;
+            return new Response(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                id,
+                error: { code: -32001, message: `DPoP rejected: ${err.message}` },
+              }),
+              {
+                status: 401,
+                headers: {
+                  ...cors,
+                  "content-type": "application/json",
+                  "DPoP-Nonce": await mintNonce(),
+                  "WWW-Authenticate": `DPoP error="${err.code}", error_description="${err.message}"`,
+                },
+              },
+            );
+          }
+        }
+
+        if (mode === "required" && !proofJkt) {
+          return new Response(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id,
+              error: {
+                code: -32001,
+                message:
+                  "This broker only accepts sender-constrained requests. Sign each call with a DPoP proof carrying the supplied nonce.",
+              },
+            }),
+            {
+              status: 401,
+              headers: {
+                ...cors,
+                "content-type": "application/json",
+                "DPoP-Nonce": await mintNonce(),
+                "WWW-Authenticate": `DPoP realm="aegis", resource_metadata="${resourceMetadata}"`,
+              },
+            },
+          );
+        }
+
+        const session = await authorizeBearer(params.serverId, token, proofJkt);
         if (!session) {
           return new Response(
             JSON.stringify({
@@ -86,7 +155,10 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
         if (!server) return rpcError(id, -32002, "Server not found", 404);
         if (!server.enabled) return rpcError(id, -32003, "This server is disabled", 403);
 
-        if (method === "ping") return rpc(id, {});
+        // Hand out the next nonce so the client's following proof is already valid.
+        const nextNonce = proofJkt ? await mintNonce() : undefined;
+
+        if (method === "ping") return rpc(id, {}, nextNonce);
 
         const legacyNotice =
           session.kind === "legacy"
@@ -109,7 +181,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
             capabilities: { tools: { listChanged: false } },
             serverInfo: { name: server.slug, title: server.name, version: "1.0.0" },
             instructions: (server.instructions || server.description) + legacyNotice,
-          });
+          }, nextNonce);
         }
 
         const { data: allTools } = await supabaseAdmin
@@ -123,7 +195,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
         const tools = (allTools ?? []).filter((t) => sessionAllows(session, t.name as string));
 
         if (method === "tools/list") {
-          return rpc(id, { tools: tools.map((t) => toolToMcpSchema(t as never)) });
+          return rpc(id, { tools: tools.map((t) => toolToMcpSchema(t as never)) }, nextNonce);
         }
 
         if (method === "tools/call") {
