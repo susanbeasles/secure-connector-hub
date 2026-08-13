@@ -175,6 +175,13 @@ function ConsentPage() {
         Redirects to <span className="font-mono">{data.redirectUri}</span>
       </p>
 
+      {touchRequired && (
+        <p className="mt-3 flex items-start gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <Fingerprint className="mt-0.5 size-3.5 shrink-0 text-primary" />
+          This broker requires a hardware-key touch before issuing a grant at this power level.
+        </p>
+      )}
+
       <div className="mt-5 space-y-2">
         <div className="flex items-center justify-between">
           <p className="label-caps">Tools to allow</p>
@@ -262,7 +269,16 @@ function ConsentPage() {
 
       <div className="mt-6 flex gap-3">
         <Button className="flex-1" disabled={busy} onClick={() => void decide(true)}>
-          {busy ? <Loader2 className="size-4 animate-spin" /> : `Approve ${chosen.length} tool(s)`}
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <>
+              {touchRequired && <Fingerprint className="mr-2 size-4" />}
+              {touchRequired
+                ? `Touch key to approve ${chosen.length} tool(s)`
+                : `Approve ${chosen.length} tool(s)`}
+            </>
+          )}
         </Button>
         <Button variant="outline" disabled={busy} onClick={() => void decide(false)}>
           Cancel connection
