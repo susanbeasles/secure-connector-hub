@@ -33,11 +33,19 @@ function b64url(bytes: Uint8Array): string {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function fromB64url(value: string): Uint8Array {
+function fromB64url(value: string): Uint8Array<ArrayBuffer> {
   const padded = value.replace(/-/g, "+").replace(/_/g, "/");
-  return Uint8Array.from(atob(padded + "=".repeat((4 - (padded.length % 4)) % 4)), (c) =>
-    c.charCodeAt(0),
-  );
+  const raw = atob(padded + "=".repeat((4 - (padded.length % 4)) % 4));
+  const bytes = new Uint8Array(new ArrayBuffer(raw.length));
+  for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+}
+
+function utf8(value: string): Uint8Array<ArrayBuffer> {
+  const source = new TextEncoder().encode(value);
+  const bytes = new Uint8Array(new ArrayBuffer(source.length));
+  bytes.set(source);
+  return bytes;
 }
 
 export function rpFromOrigin(origin: string) {
@@ -134,7 +142,7 @@ export async function registrationOptions(input: {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID,
-    userID: fromB64url(b64url(new TextEncoder().encode(input.userId))),
+    userID: utf8(input.userId),
     userName: input.userName,
     attestationType: "none",
     excludeCredentials: (existing ?? []).map((c) => ({ id: c.credential_id as string })),
