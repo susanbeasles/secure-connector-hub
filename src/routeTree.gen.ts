@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ServersNewRouteImport } from './routes/servers.new'
+import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServersNewRoute = ServersNewRouteImport.update({
+  id: '/servers/new',
+  path: '/servers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMcpServerIdRoute = ApiPublicMcpServerIdRouteImport.update({
+  id: '/api/public/mcp/$serverId',
+  path: '/api/public/mcp/$serverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/servers/new': typeof ServersNewRoute
+  '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/servers/new': typeof ServersNewRoute
+  '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/servers/new': typeof ServersNewRoute
+  '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/auth' | '/servers/new' | '/api/public/mcp/$serverId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/auth' | '/servers/new' | '/api/public/mcp/$serverId'
+  id: '__root__' | '/' | '/auth' | '/servers/new' | '/api/public/mcp/$serverId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  ServersNewRoute: typeof ServersNewRoute
+  ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/servers/new': {
+      id: '/servers/new'
+      path: '/servers/new'
+      fullPath: '/servers/new'
+      preLoaderRoute: typeof ServersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mcp/$serverId': {
+      id: '/api/public/mcp/$serverId'
+      path: '/api/public/mcp/$serverId'
+      fullPath: '/api/public/mcp/$serverId'
+      preLoaderRoute: typeof ApiPublicMcpServerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  ServersNewRoute: ServersNewRoute,
+  ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
