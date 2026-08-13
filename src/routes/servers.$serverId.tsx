@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { HealthDot } from "@/components/ui-bits";
 import { OAuthPanel } from "@/components/OAuthPanel";
+import { SecurityPanel } from "@/components/SecurityPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -189,6 +190,7 @@ function ServerConsole() {
           <TabsTrigger value="tools">Tools ({data?.tools.length ?? 0})</TabsTrigger>
           <TabsTrigger value="creds">Credentials</TabsTrigger>
           <TabsTrigger value="oauth">OAuth grants</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="access">Legacy bearer</TabsTrigger>
           <TabsTrigger value="approvals">Approvals</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
@@ -209,6 +211,21 @@ function ServerConsole() {
 
         <TabsContent value="oauth">
           <OAuthPanel serverId={server.id} endpoint={endpoint} />
+        </TabsContent>
+
+        <TabsContent value="security">
+          <SecurityPanel
+            serverId={server.id}
+            policy={{
+              dpop_mode: String((server as { dpop_mode?: string }).dpop_mode ?? "preferred"),
+              webauthn_policy: String((server as { webauthn_policy?: string }).webauthn_policy ?? "write"),
+              webauthn_authenticator: String(
+                (server as { webauthn_authenticator?: string }).webauthn_authenticator ?? "any",
+              ),
+              webauthn_sso_fallback:
+                (server as { webauthn_sso_fallback?: boolean }).webauthn_sso_fallback ?? true,
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="access">
