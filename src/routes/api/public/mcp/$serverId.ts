@@ -23,8 +23,8 @@ function rpcError(id: unknown, code: number, message: string, status = 200) {
   });
 }
 
-function textResult(id: unknown, text: string, isError = false) {
-  return rpc(id, { content: [{ type: "text", text }], isError });
+function textResult(id: unknown, text: string, isError = false, nonce?: string) {
+  return rpc(id, { content: [{ type: "text", text }], isError }, nonce);
 }
 
 export const Route = createFileRoute("/api/public/mcp/$serverId")({
@@ -217,9 +217,10 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
                 id,
                 `Out of scope: this grant does not include "${name}". Ask the operator to authorize it — the current grant expires ${session.expiresAt}.`,
                 true,
+                nextNonce,
               );
             }
-            return textResult(id, `Tool "${name}" is not enabled on this server.`, true);
+            return textResult(id, `Tool "${name}" is not enabled on this server.`, true, nextNonce);
           }
 
           if (tool.approval === "always_ask") {
@@ -254,6 +255,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
                 id,
                 `Approval required. A request to run "${name}" was sent to the operator console. Ask the user to approve it, then retry this call.`,
                 true,
+                nextNonce,
               );
             }
             await supabaseAdmin
@@ -274,7 +276,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
               duration_ms: out.durationMs,
               message: `Proxied ${tool.method} ${tool.path}`,
             });
-            return textResult(id, out.body || `(empty ${out.status} response)`, out.status >= 400);
+            return textResult(id, out.body || `(empty ${out.status} response)`, out.status >= 400, nextNonce);
           } catch (e) {
             const message = e instanceof Error ? e.message : "Upstream call failed";
             await logEvent({
@@ -285,7 +287,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
               tool_name: name,
               message,
             });
-            return textResult(id, message, true);
+            return textResult(id, message, true, nextNonce);
           }
         }
 
