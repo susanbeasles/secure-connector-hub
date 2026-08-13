@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonHeaders, protectedResourceMetadata } from "@/lib/oauth-metadata";
 
-export const Route = createFileRoute("/[.]well-known/oauth-protected-resource/$")({
+export const Route = createFileRoute("/.well-known/oauth-protected-resource/$")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: jsonHeaders }),

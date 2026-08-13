@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
 import { Route as ServersServerIdRouteImport } from './routes/servers.$serverId'
 import { Route as ServersNewRouteImport } from './routes/servers.new'
+import { Route as DotwellKnownOauthProtectedResourceSplatRouteImport } from './routes/[.]well-known/oauth-protected-resource.$'
 import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
 import { Route as ApiPublicOauthAuthorizeRouteImport } from './routes/api/public/oauth/authorize'
 import { Route as ApiPublicOauthMetadataRouteImport } from './routes/api/public/oauth/metadata'
@@ -47,6 +48,12 @@ const ServersNewRoute = ServersNewRouteImport.update({
   path: '/servers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthProtectedResourceSplatRoute =
+  DotwellKnownOauthProtectedResourceSplatRouteImport.update({
+    id: '/.well-known/oauth-protected-resource/$',
+    path: '/.well-known/oauth-protected-resource/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMcpServerIdRoute = ApiPublicMcpServerIdRouteImport.update({
   id: '/api/public/mcp/$serverId',
   path: '/api/public/mcp/$serverId',
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -111,6 +120,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
+  '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-authorization-server'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-authorization-server'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-authorization-server'
     | '/servers/$serverId'
     | '/servers/new'
+    | '/.well-known/oauth-protected-resource/$'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -166,6 +179,7 @@ export interface RootRouteChildren {
   DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
   ServersServerIdRoute: typeof ServersServerIdRoute
   ServersNewRoute: typeof ServersNewRoute
+  DotwellKnownOauthProtectedResourceSplatRoute: typeof DotwellKnownOauthProtectedResourceSplatRoute
   ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
   ApiPublicOauthAuthorizeRoute: typeof ApiPublicOauthAuthorizeRoute
   ApiPublicOauthMetadataRoute: typeof ApiPublicOauthMetadataRoute
@@ -209,6 +223,13 @@ declare module '@tanstack/react-router' {
       path: '/servers/new'
       fullPath: '/servers/new'
       preLoaderRoute: typeof ServersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource/$': {
+      id: '/.well-known/oauth-protected-resource/$'
+      path: '/.well-known/oauth-protected-resource/$'
+      fullPath: '/.well-known/oauth-protected-resource/$'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/mcp/$serverId': {
@@ -263,6 +284,8 @@ const rootRouteChildren: RootRouteChildren = {
     DotwellKnownOauthAuthorizationServerRoute,
   ServersServerIdRoute: ServersServerIdRoute,
   ServersNewRoute: ServersNewRoute,
+  DotwellKnownOauthProtectedResourceSplatRoute:
+    DotwellKnownOauthProtectedResourceSplatRoute,
   ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
   ApiPublicOauthAuthorizeRoute: ApiPublicOauthAuthorizeRoute,
   ApiPublicOauthMetadataRoute: ApiPublicOauthMetadataRoute,
