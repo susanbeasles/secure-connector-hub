@@ -320,13 +320,16 @@ export async function exchangeCode(input: {
     }
   }
 
+  const operatorId = req.user_id as string | null;
+  if (!operatorId) throw new Error("invalid_grant");
+
   await db.from("oauth_requests").update({ consumed_at: new Date().toISOString() }).eq("id", req.id);
 
   const grantExpiry = new Date(Date.now() + req.grant_ttl_minutes * 60_000).toISOString();
   const { data: grant, error } = await db
     .from("oauth_grants")
     .insert({
-      user_id: req.user_id,
+      user_id: operatorId,
       server_id: req.server_id,
       client_id: req.client_id,
       client_name: client.name,
