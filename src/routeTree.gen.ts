@@ -16,6 +16,7 @@ import { Route as ServersNewRouteImport } from './routes/servers.new'
 import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
 import { Route as ApiPublicOauthAuthorizeRouteImport } from './routes/api/public/oauth/authorize'
 import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/oauth/register'
+import { Route as ApiPublicOauthRevokeRouteImport } from './routes/api/public/oauth/revoke'
 import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const ApiPublicOauthRegisterRoute = ApiPublicOauthRegisterRouteImport.update({
   path: '/api/public/oauth/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthRevokeRoute = ApiPublicOauthRevokeRouteImport.update({
+  id: '/api/public/oauth/revoke',
+  path: '/api/public/oauth/revoke',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOauthTokenRoute = ApiPublicOauthTokenRouteImport.update({
   id: '/api/public/oauth/token',
   path: '/api/public/oauth/token',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/register'
+    | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
   ApiPublicOauthAuthorizeRoute: typeof ApiPublicOauthAuthorizeRoute
   ApiPublicOauthRegisterRoute: typeof ApiPublicOauthRegisterRoute
+  ApiPublicOauthRevokeRoute: typeof ApiPublicOauthRevokeRoute
   ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/revoke': {
+      id: '/api/public/oauth/revoke'
+      path: '/api/public/oauth/revoke'
+      fullPath: '/api/public/oauth/revoke'
+      preLoaderRoute: typeof ApiPublicOauthRevokeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/oauth/token': {
       id: '/api/public/oauth/token'
       path: '/api/public/oauth/token'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
   ApiPublicOauthAuthorizeRoute: ApiPublicOauthAuthorizeRoute,
   ApiPublicOauthRegisterRoute: ApiPublicOauthRegisterRoute,
+  ApiPublicOauthRevokeRoute: ApiPublicOauthRevokeRoute,
   ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
 }
 export const routeTree = rootRouteImport
