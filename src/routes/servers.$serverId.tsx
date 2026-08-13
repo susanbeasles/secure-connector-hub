@@ -362,7 +362,7 @@ function ToolsPanel({
                   <Select
                     value={t.approval}
                     onValueChange={async (v) => {
-                      await supabase.from("tools").update({ approval: v }).eq("id", t.id);
+                      await supabase.from("tools").update({ approval: v as "always_ask" }).eq("id", t.id);
                       onChange();
                     }}
                   >
