@@ -410,6 +410,7 @@ export async function exchangeCode(input: {
       client_id: req.client_id,
       client_name: client.name,
       scopes: req.granted_scopes,
+      webauthn_credential_id: req.webauthn_credential_id,
       access_token_hash: "pending",
       access_expires_at: new Date().toISOString(),
       grant_expires_at: grantExpiry,
