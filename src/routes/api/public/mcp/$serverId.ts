@@ -51,16 +51,30 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
 
         if (method.startsWith("notifications/")) return new Response(null, { status: 202, headers: cors });
 
+        const origin = new URL(request.url).origin;
+        const resourceMetadata = `${origin}/.well-known/oauth-protected-resource/api/public/mcp/${params.serverId}`;
         const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
-        const session = await authenticateToken(params.serverId, token);
+        const session = await authorizeBearer(params.serverId, token);
         if (!session) {
           return new Response(
             JSON.stringify({
               jsonrpc: "2.0",
               id,
-              error: { code: -32001, message: "Unauthorized: missing, expired or revoked token" },
+              error: {
+                code: -32001,
+                message:
+                  "Unauthorized: no valid OAuth grant. Start the authorization flow at " +
+                  `${origin}/api/public/oauth/authorize`,
+              },
             }),
-            { status: 401, headers: { ...cors, "content-type": "application/json" } },
+            {
+              status: 401,
+              headers: {
+                ...cors,
+                "content-type": "application/json",
+                "WWW-Authenticate": `Bearer realm="aegis", resource_metadata="${resourceMetadata}"`,
+              },
+            },
           );
         }
 
