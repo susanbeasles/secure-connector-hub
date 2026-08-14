@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as OperatorsRouteImport } from './routes/operators'
 import { Route as DotwellKnownJwksDotjsonRouteImport } from './routes/[.]well-known/jwks[.]json'
 import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
+import { Route as AuthGithubRouteImport } from './routes/auth.github'
 import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ServersServerIdRouteImport } from './routes/servers.$serverId'
 import { Route as ServersNewRouteImport } from './routes/servers.new'
@@ -53,6 +54,11 @@ const DotwellKnownOauthAuthorizationServerRoute =
     path: '/.well-known/oauth-authorization-server',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthGithubRoute = AuthGithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => AuthRoute,
+} as any)
 const OauthConsentRoute = OauthConsentRouteImport.update({
   id: '/oauth/consent',
   path: '/oauth/consent',
@@ -118,10 +124,11 @@ const ApiPublicOauthUpstreamCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/auth/github': typeof AuthGithubRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
@@ -137,10 +144,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/auth/github': typeof AuthGithubRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
@@ -157,10 +165,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
+  '/auth/github': typeof AuthGithubRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/operators'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
+    | '/auth/github'
     | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/operators'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
+    | '/auth/github'
     | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/operators'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
+    | '/auth/github'
     | '/oauth/consent'
     | '/servers/$serverId'
     | '/servers/new'
@@ -236,7 +248,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   OperatorsRoute: typeof OperatorsRoute
   DotwellKnownJwksDotjsonRoute: typeof DotwellKnownJwksDotjsonRoute
   DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.well-known/oauth-authorization-server'
       preLoaderRoute: typeof DotwellKnownOauthAuthorizationServerRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/github': {
+      id: '/auth/github'
+      path: '/github'
+      fullPath: '/auth/github'
+      preLoaderRoute: typeof AuthGithubRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/oauth/consent': {
       id: '/oauth/consent'
@@ -378,9 +397,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthRouteChildren {
+  AuthGithubRoute: typeof AuthGithubRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthGithubRoute: AuthGithubRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   OperatorsRoute: OperatorsRoute,
   DotwellKnownJwksDotjsonRoute: DotwellKnownJwksDotjsonRoute,
   DotwellKnownOauthAuthorizationServerRoute:

@@ -427,6 +427,54 @@ export type Database = {
           },
         ]
       }
+      domain_claims: {
+        Row: {
+          claimed_by: string | null
+          claimed_email: string | null
+          created_at: string
+          domain: string
+          id: string
+          sso_kind: string | null
+          sso_metadata_url: string | null
+          sso_provider_id: string | null
+          sso_rotated_at: string | null
+          status: string
+          txt_token: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          claimed_by?: string | null
+          claimed_email?: string | null
+          created_at?: string
+          domain: string
+          id?: string
+          sso_kind?: string | null
+          sso_metadata_url?: string | null
+          sso_provider_id?: string | null
+          sso_rotated_at?: string | null
+          status?: string
+          txt_token: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          claimed_by?: string | null
+          claimed_email?: string | null
+          created_at?: string
+          domain?: string
+          id?: string
+          sso_kind?: string | null
+          sso_metadata_url?: string | null
+          sso_provider_id?: string | null
+          sso_rotated_at?: string | null
+          status?: string
+          txt_token?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       dpop_proofs: {
         Row: {
           created_at: string
@@ -445,6 +493,48 @@ export type Database = {
           expires_at?: string
           jkt?: string
           jti?: string
+        }
+        Relationships: []
+      }
+      identity_verifications: {
+        Row: {
+          attempts: number
+          code_hash: string | null
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          method: string
+          session_hash: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          code_hash?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          method: string
+          session_hash: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          method?: string
+          session_hash?: string
+          user_id?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -478,6 +568,60 @@ export type Database = {
           recovery_hash?: string | null
           recovery_used_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      mfa_factors: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string | null
+          reference: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          label?: string | null
+          reference: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string | null
+          reference?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

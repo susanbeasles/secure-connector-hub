@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useOperator } from "@/hooks/useOperator";
 import { useAuth } from "@/hooks/useAuth";
 import { ClaimGate } from "@/components/ClaimGate";
+import { MfaGate } from "@/components/auth/MfaGate";
+import { ManifestDrop } from "@/components/tools/ManifestDrop";
+
+
 
 async function signOut(then: () => void) {
   await supabase.auth.signOut();
@@ -20,6 +24,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {signedIn ? <ManifestDrop /> : null}
+
       <header className="sticky top-0 z-30 border-b border-border bg-surface/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-5">
           <Link to="/" className="flex items-center gap-2 font-semibold">
@@ -81,8 +87,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-5 py-8">
-        {denied ? <ClaimGate onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} /> : children}
+        {signedIn ? (
+          <MfaGate>
+            {denied ? (
+              <ClaimGate onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} />
+            ) : (
+              children
+            )}
+          </MfaGate>
+        ) : (
+          children
+        )}
+
       </main>
+
     </div>
   );
 }
