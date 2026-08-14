@@ -73,7 +73,7 @@ export async function claimInstance(input: {
     throw new Error("Bootstrap secret rejected.");
   }
 
-  const { mfaState } = await import("../mfa/factors.server");
+  const { mfaState } = await import("@/lib/mfa/factors.server");
   const mfa = await mfaState(input.userId);
   if (!mfa.enrolled) throw new Error("Enroll a verified second factor before claiming.");
 
