@@ -29,6 +29,7 @@ type Policy = {
   webauthn_authenticator: string;
   webauthn_sso_fallback: boolean;
   rate_limit_per_min: number;
+  retention_days: number;
 };
 
 const DPOP = [
@@ -67,6 +68,7 @@ export function SecurityPanel({ serverId, policy }: { serverId: string; policy: 
           webauthn_authenticator: draft.webauthn_authenticator as never,
           webauthn_sso_fallback: draft.webauthn_sso_fallback,
           rate_limit_per_min: Number(draft.rate_limit_per_min) || 60,
+          retention_days: Number(draft.retention_days) || 30,
         },
       }),
     onSuccess: () => {

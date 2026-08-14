@@ -242,6 +242,7 @@ function ServerConsole() {
               rate_limit_per_min: Number(
                 (server as { rate_limit_per_min?: number }).rate_limit_per_min ?? 60,
               ),
+              retention_days: Number((server as { retention_days?: number }).retention_days ?? 30),
             }}
 
           />
