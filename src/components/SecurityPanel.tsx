@@ -165,6 +165,27 @@ export function SecurityPanel({ serverId, policy }: { serverId: string; policy: 
         </div>
       </section>
 
+      <section className="panel p-5">
+        <h3 className="text-sm font-semibold">Log retention</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          How long raw events stay queryable. Older events are archived verbatim and folded into
+          permanent daily rollups — history is never lost, only compacted.
+        </p>
+        <div className="mt-3 max-w-xs">
+          <Label className="label-caps">Hot window (days)</Label>
+          <Input
+            type="number"
+            min={1}
+            max={3650}
+            className="mt-1"
+            value={draft.retention_days}
+            onChange={(e) => setDraft({ ...draft, retention_days: Number(e.target.value) })}
+          />
+        </div>
+      </section>
+
+
+
 
       <section className="panel p-5">
         <div className="flex items-center gap-2">
