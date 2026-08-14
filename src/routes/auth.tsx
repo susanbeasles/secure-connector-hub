@@ -75,6 +75,23 @@ function AuthPage() {
     window.location.replace(next);
   }
 
+  async function passkey() {
+    setBusy(true);
+    try {
+      const origin = window.location.origin;
+      const { ticket, options } = await startPasskeySignIn({ data: { origin } });
+      const response = await startAuthentication({ optionsJSON: options as never });
+      const { tokenHash } = await finishPasskeySignIn({ data: { origin, ticket, response } });
+      const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
+      if (error) throw error;
+      window.location.replace(next);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Passkey sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function sso(provider: "google") {
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
