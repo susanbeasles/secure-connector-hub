@@ -81,8 +81,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-5 py-8">
-        {denied ? <ClaimGate onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} /> : children}
+        {denied ? (
+          <ClaimGate onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} />
+        ) : signedIn ? (
+          <MfaGate>{children}</MfaGate>
+        ) : (
+          children
+        )}
       </main>
+
     </div>
   );
 }
