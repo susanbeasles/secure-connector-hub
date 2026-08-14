@@ -105,6 +105,71 @@ export type Database = {
           },
         ]
       }
+      attestations: {
+        Row: {
+          created_at: string
+          deploy_digest: string
+          id: string
+          key_thumbprint: string
+          note: string
+          trusted: boolean
+        }
+        Insert: {
+          created_at?: string
+          deploy_digest?: string
+          id?: string
+          key_thumbprint: string
+          note?: string
+          trusted?: boolean
+        }
+        Update: {
+          created_at?: string
+          deploy_digest?: string
+          id?: string
+          key_thumbprint?: string
+          note?: string
+          trusted?: boolean
+        }
+        Relationships: []
+      }
+      audit_archive: {
+        Row: {
+          batch: Json
+          created_at: string
+          day: string
+          event_count: number
+          id: string
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          batch?: Json
+          created_at?: string
+          day: string
+          event_count?: number
+          id?: string
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          batch?: Json
+          created_at?: string
+          day?: string
+          event_count?: number
+          id?: string
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_archive_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           created_at: string
@@ -148,6 +213,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_rollups: {
+        Row: {
+          calls: number
+          created_at: string
+          day: string
+          errors: number
+          id: string
+          p50_ms: number
+          p95_ms: number
+          server_id: string
+          tool_name: string
+          user_id: string
+          warnings: number
+        }
+        Insert: {
+          calls?: number
+          created_at?: string
+          day: string
+          errors?: number
+          id?: string
+          p50_ms?: number
+          p95_ms?: number
+          server_id: string
+          tool_name?: string
+          user_id: string
+          warnings?: number
+        }
+        Update: {
+          calls?: number
+          created_at?: string
+          day?: string
+          errors?: number
+          id?: string
+          p50_ms?: number
+          p95_ms?: number
+          server_id?: string
+          tool_name?: string
+          user_id?: string
+          warnings?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_rollups_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
@@ -208,6 +323,110 @@ export type Database = {
           },
         ]
       }
+      deploy_events: {
+        Row: {
+          action: string
+          created_at: string
+          deployment_id: string | null
+          detail: string
+          id: string
+          server_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          deployment_id?: string | null
+          detail?: string
+          id?: string
+          server_id?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          deployment_id?: string | null
+          detail?: string
+          id?: string
+          server_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deploy_events_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "deployments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deploy_events_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deployments: {
+        Row: {
+          created_at: string
+          id: string
+          last_error: string | null
+          last_reconciled_at: string | null
+          route_url: string | null
+          server_id: string
+          spec_digest: string | null
+          status: string
+          target: string
+          updated_at: string
+          user_id: string
+          version: number
+          worker_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_reconciled_at?: string | null
+          route_url?: string | null
+          server_id: string
+          spec_digest?: string | null
+          status?: string
+          target?: string
+          updated_at?: string
+          user_id: string
+          version?: number
+          worker_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_reconciled_at?: string | null
+          route_url?: string | null
+          server_id?: string
+          spec_digest?: string | null
+          status?: string
+          target?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+          worker_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dpop_proofs: {
         Row: {
           created_at: string
@@ -226,6 +445,39 @@ export type Database = {
           expires_at?: string
           jkt?: string
           jti?: string
+        }
+        Relationships: []
+      }
+      instance_claim: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          claimed_email: string | null
+          created_at: string
+          id: boolean
+          recovery_hash: string | null
+          recovery_used_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          claimed_email?: string | null
+          created_at?: string
+          id?: boolean
+          recovery_hash?: string | null
+          recovery_used_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          claimed_email?: string | null
+          created_at?: string
+          id?: boolean
+          recovery_hash?: string | null
+          recovery_used_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -524,6 +776,8 @@ export type Database = {
           last_health_check: string | null
           name: string
           rate_limit_per_min: number
+          retention_days: number
+          runtime_target: string
           slug: string
           updated_at: string
           user_id: string
@@ -545,6 +799,8 @@ export type Database = {
           last_health_check?: string | null
           name: string
           rate_limit_per_min?: number
+          retention_days?: number
+          runtime_target?: string
           slug: string
           updated_at?: string
           user_id?: string
@@ -566,6 +822,8 @@ export type Database = {
           last_health_check?: string | null
           name?: string
           rate_limit_per_min?: number
+          retention_days?: number
+          runtime_target?: string
           slug?: string
           updated_at?: string
           user_id?: string
