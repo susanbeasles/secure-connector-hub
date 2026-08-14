@@ -25,6 +25,7 @@ import { HealthDot } from "@/components/ui-bits";
 import { OAuthPanel } from "@/components/OAuthPanel";
 import { SecurityPanel } from "@/components/SecurityPanel";
 import { InsightsPanel } from "@/components/InsightsPanel";
+import { UpstreamPanel } from "@/components/UpstreamPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -190,6 +191,7 @@ function ServerConsole() {
         <TabsList>
           <TabsTrigger value="tools">Tools ({data?.tools.length ?? 0})</TabsTrigger>
           <TabsTrigger value="creds">Credentials</TabsTrigger>
+          <TabsTrigger value="upstream">Provider auth</TabsTrigger>
           <TabsTrigger value="oauth">OAuth grants</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="access">Legacy bearer</TabsTrigger>
@@ -208,6 +210,10 @@ function ServerConsole() {
             creds={data?.creds ?? []}
             onChange={refresh}
           />
+        </TabsContent>
+
+        <TabsContent value="upstream">
+          <UpstreamPanel serverId={server.id} />
         </TabsContent>
 
         <TabsContent value="oauth">

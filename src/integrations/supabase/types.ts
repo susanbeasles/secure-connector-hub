@@ -664,6 +664,150 @@ export type Database = {
           },
         ]
       }
+      upstream_oauth: {
+        Row: {
+          audience: string | null
+          authorize_url: string
+          client_id: string
+          created_at: string
+          encrypted_client_secret: string | null
+          header_name: string
+          id: string
+          provider: string
+          scopes: string[]
+          server_id: string
+          token_url: string
+          updated_at: string
+          user_id: string
+          value_template: string
+        }
+        Insert: {
+          audience?: string | null
+          authorize_url: string
+          client_id: string
+          created_at?: string
+          encrypted_client_secret?: string | null
+          header_name?: string
+          id?: string
+          provider?: string
+          scopes?: string[]
+          server_id: string
+          token_url: string
+          updated_at?: string
+          user_id: string
+          value_template?: string
+        }
+        Update: {
+          audience?: string | null
+          authorize_url?: string
+          client_id?: string
+          created_at?: string
+          encrypted_client_secret?: string | null
+          header_name?: string
+          id?: string
+          provider?: string
+          scopes?: string[]
+          server_id?: string
+          token_url?: string
+          updated_at?: string
+          user_id?: string
+          value_template?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upstream_oauth_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upstream_sessions: {
+        Row: {
+          code_verifier: string
+          created_at: string
+          expires_at: string
+          id: string
+          redirect_uri: string
+          server_id: string
+          state: string
+        }
+        Insert: {
+          code_verifier: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          redirect_uri: string
+          server_id: string
+          state: string
+        }
+        Update: {
+          code_verifier?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          redirect_uri?: string
+          server_id?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upstream_sessions_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upstream_tokens: {
+        Row: {
+          created_at: string
+          encrypted_access: string
+          encrypted_refresh: string | null
+          expires_at: string | null
+          id: string
+          rotated_at: string
+          rotations: number
+          scope: string
+          server_id: string
+          token_type: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_access: string
+          encrypted_refresh?: string | null
+          expires_at?: string | null
+          id?: string
+          rotated_at?: string
+          rotations?: number
+          scope?: string
+          server_id: string
+          token_type?: string
+        }
+        Update: {
+          created_at?: string
+          encrypted_access?: string
+          encrypted_refresh?: string | null
+          expires_at?: string | null
+          id?: string
+          rotated_at?: string
+          rotations?: number
+          scope?: string
+          server_id?: string
+          token_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upstream_tokens_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webauthn_challenges: {
         Row: {
           challenge: string

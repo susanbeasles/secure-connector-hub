@@ -56,7 +56,7 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Rate limiting per grant (broker default configurable under Security)
 - [x] Automatic credential + grant expiry warnings (fleet sweep)
 - [ ] Cloudflare Access JWT verification in front of console + proxy; Zero Trust tunnel deployment notes
-- [ ] Upstream (provider-side) OAuth2 authorization-code flow with refresh rotation
+- [x] Upstream (provider-side) OAuth2 authorization-code flow with PKCE, sealed client secret, server-side refresh rotation, single-use handshake state (`/api/public/oauth/upstream-callback`, "Provider auth" tab)
 
 
 ## Phase 6 — Catalogue

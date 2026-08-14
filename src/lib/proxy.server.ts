@@ -85,6 +85,10 @@ function interpolate(template: string, args: Record<string, unknown>): string {
 
 /** Resolve outbound auth headers for a server from its stored (encrypted) credential. */
 export async function credentialHeaders(serverId: string): Promise<Record<string, string>> {
+  const { upstreamHeaders } = await import("./upstream.server");
+  const upstream = await upstreamHeaders(serverId);
+  if (upstream) return upstream;
+
   const db = await admin();
   const { data } = await db
     .from("credentials")

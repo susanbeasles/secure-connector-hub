@@ -25,6 +25,7 @@ import { Route as ApiPublicOauthMetadataRouteImport } from './routes/api/public/
 import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/oauth/register'
 import { Route as ApiPublicOauthRevokeRouteImport } from './routes/api/public/oauth/revoke'
 import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
+import { Route as ApiPublicOauthUpstreamCallbackRouteImport } from './routes/api/public/oauth/upstream-callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +109,12 @@ const ApiPublicOauthTokenRoute = ApiPublicOauthTokenRouteImport.update({
   path: '/api/public/oauth/token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthUpstreamCallbackRoute =
+  ApiPublicOauthUpstreamCallbackRouteImport.update({
+    id: '/api/public/oauth/upstream-callback',
+    path: '/api/public/oauth/upstream-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
+  '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
+  '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -163,6 +172,7 @@ export interface FileRoutesById {
   '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
+  '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/register'
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
+    | '/api/public/oauth/upstream-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/register'
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
+    | '/api/public/oauth/upstream-callback'
   id:
     | '__root__'
     | '/'
@@ -219,6 +231,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/register'
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
+    | '/api/public/oauth/upstream-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -238,6 +251,7 @@ export interface RootRouteChildren {
   ApiPublicOauthRegisterRoute: typeof ApiPublicOauthRegisterRoute
   ApiPublicOauthRevokeRoute: typeof ApiPublicOauthRevokeRoute
   ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
+  ApiPublicOauthUpstreamCallbackRoute: typeof ApiPublicOauthUpstreamCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -354,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/upstream-callback': {
+      id: '/api/public/oauth/upstream-callback'
+      path: '/api/public/oauth/upstream-callback'
+      fullPath: '/api/public/oauth/upstream-callback'
+      preLoaderRoute: typeof ApiPublicOauthUpstreamCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -376,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicOauthRegisterRoute: ApiPublicOauthRegisterRoute,
   ApiPublicOauthRevokeRoute: ApiPublicOauthRevokeRoute,
   ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
+  ApiPublicOauthUpstreamCallbackRoute: ApiPublicOauthUpstreamCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
