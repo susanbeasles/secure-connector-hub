@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { serverInsights } from "@/lib/insights.functions";
+import { Download, Loader2 } from "lucide-react";
+import { serverHistory, serverInsights } from "@/lib/insights.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +16,33 @@ const WINDOWS = [
   { value: "1", label: "Last hour" },
   { value: "24", label: "Last 24 hours" },
   { value: "168", label: "Last 7 days" },
+  { value: "720", label: "Last 30 days" },
+];
+
+const HISTORY_RANGES = [
+  { value: "30", label: "30 days" },
+  { value: "90", label: "90 days" },
+  { value: "365", label: "1 year" },
+  { value: "3650", label: "All time" },
 ];
 
 const LEVELS = ["all", "info", "warn", "error"] as const;
+
+function exportCsv(name: string, rows: Record<string, unknown>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]!);
+  const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => escape(r[h])).join(","))].join(
+    "\n",
+  );
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
 const levelClass = (level: string) =>
   level === "error"
