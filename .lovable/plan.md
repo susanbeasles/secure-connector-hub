@@ -17,7 +17,7 @@ account creation — the session is established the moment enrollment completes.
 
 ## 2. Verification without email links
 
-Email confirmation is turned off. Verification of the address happens one of three ways:
+Email confirmation is turned off. Verification of the address happens one of four ways:
 
 - **GitHub**: OAuth grant for `read:user user:email` only. We read the verified
   emails on the account, check one matches what was typed, and discard the token
@@ -28,9 +28,30 @@ Email confirmation is turned off. Verification of the address happens one of thr
   bound to the browser session that requested it (a ticket cookie/id) and is only
   redeemable in that same session, within 10 minutes, with attempt throttling.
   A code pasted into another browser is rejected.
+- **Domain + IdP proof (strongest, skips mailbox proof entirely)**: prove control
+  of the DNS zone with a `_aegis-verify` TXT record, then bind a SAML/OIDC IdP for
+  that same domain. Whoever holds the zone and the IdP already controls every
+  mailbox in it, so asserting a mailbox is redundant — any identity that domain's
+  IdP asserts is accepted at face value. Signup for that path is: verify domain ->
+  provision SSO -> signed in, no email round trip.
 
 Any existing magic-link paths are removed, including the OTP link that dumped you
 on a failed-OTP error URL.
+
+### Asymmetric SSO provisioning with rotation
+
+The domain path provisions SSO automatically rather than through a settings form:
+
+- SAML metadata URL or OIDC discovery URL in, connection out — no manual cert
+  paste, no field-by-field config.
+- Signature verification is asymmetric only (RS256/ES256 against the IdP's
+  JWKS/metadata cert). Shared secrets are never accepted.
+- Keys rotate on their own: the IdP's JWKS/metadata is re-fetched on a schedule
+  and on unknown-`kid`, keeping old and new keys valid through the overlap window,
+  and the broker's own SP signing key rotates on the same cadence with both keys
+  published while the old one drains. Rotation never requires a human to touch the
+  connection, and every rotation writes to the attestation chain.
+
 
 ## 3. MFA is mandatory and real
 
