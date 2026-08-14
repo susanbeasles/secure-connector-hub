@@ -143,6 +143,29 @@ export function SecurityPanel({ serverId, policy }: { serverId: string; policy: 
 
       <section className="panel p-5">
         <div className="flex items-center gap-2">
+          <KeyRound className="size-4 text-primary" />
+          <h3 className="text-sm font-semibold">Call budget</h3>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ceiling on tool calls per minute, counted per grant. A looping agent throttles itself
+          long before it drains an upstream quota.
+        </p>
+        <div className="mt-3 max-w-xs">
+          <Label className="label-caps">Calls per minute</Label>
+          <Input
+            type="number"
+            min={1}
+            max={6000}
+            className="mt-1"
+            value={draft.rate_limit_per_min}
+            onChange={(e) => setDraft({ ...draft, rate_limit_per_min: Number(e.target.value) })}
+          />
+        </div>
+      </section>
+
+
+      <section className="panel p-5">
+        <div className="flex items-center gap-2">
           <Fingerprint className="size-4 text-primary" />
           <h3 className="text-sm font-semibold">Hardware-key approval</h3>
         </div>
