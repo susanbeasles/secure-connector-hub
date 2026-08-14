@@ -43,7 +43,7 @@ function algorithm(alg: string) {
 }
 
 async function verifySignature(token: string, jwk: Jwk, alg: string): Promise<boolean> {
-  const [head, body, signature] = token.split(".");
+  const [head = "", body = "", signature = ""] = token.split(".");
   const params = algorithm(alg);
   const key = await crypto.subtle.importKey("jwk", jwk, params, false, ["verify"]);
   const verifyParams =
@@ -64,8 +64,9 @@ export async function verifyAccessToken(input: {
 }): Promise<AccessIdentity> {
   const parts = input.token.split(".");
   if (parts.length !== 3) throw new AccessError("Malformed Access assertion");
+  const [rawHeader = "", rawClaims = ""] = parts;
 
-  const header = decodeJson<{ kid?: string; alg?: string }>(parts[0]);
+  const header = decodeJson<{ kid?: string; alg?: string }>(rawHeader);
   const alg = header.alg ?? "RS256";
 
   let keys = await certs(input.teamDomain);
@@ -88,7 +89,7 @@ export async function verifyAccessToken(input: {
     nbf?: number;
     common_name?: string;
     device_id?: string;
-  }>(parts[1]);
+  }>(rawClaims);
 
   const now = Math.floor(Date.now() / 1000);
   if (!claims.exp || claims.exp < now) throw new AccessError("Access assertion expired");
