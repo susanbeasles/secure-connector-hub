@@ -97,12 +97,13 @@ function AuthPage() {
         <div className="panel p-6">
           <p className="label-caps">Operator access</p>
           <h2 className="mt-1 text-xl font-semibold">
-            {mode === "signin" ? "Sign in" : "Create operator"}
+            {mode === "signin" ? "Sign in" : "Claim or redeem a seat"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Console access is per-operator. Put Cloudflare Access in front of this origin to make it
-            the only network path.
+            Invite-only. The first identity to sign in claims ownership of this broker; after that,
+            only addresses the owner added get in — creating an account grants nothing on its own.
           </p>
+
           <form className="mt-5 space-y-4" onSubmit={submit}>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
