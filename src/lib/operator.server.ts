@@ -27,8 +27,9 @@ function toOperator(row: {
 
 /**
  * The single trust decision for console access: an identity is an operator only
- * if it already holds a seat, claims the empty broker as owner, or redeems an
- * invite the owner created. Nothing else grants access.
+ * if it already holds a seat or redeems an invite the owner created. An
+ * unclaimed instance seats nobody — ownership is taken through the bootstrap
+ * ceremony, never by whoever signs in first.
  */
 export async function resolveOperator(userId: string, email?: string): Promise<Operator | null> {
   const db = await admin();
@@ -37,15 +38,7 @@ export async function resolveOperator(userId: string, email?: string): Promise<O
   if (seat.data) return toOperator(seat.data);
   if (!email) return null;
 
-  const { count } = await db.from("operators").select("user_id", { count: "exact", head: true });
-  if ((count ?? 0) === 0) {
-    const claimed = await db
-      .from("operators")
-      .insert({ user_id: userId, email, role: "owner" })
-      .select("*")
-      .maybeSingle();
-    return claimed.data ? toOperator(claimed.data) : null;
-  }
+
 
   const invite = await db
     .from("operator_invites")
