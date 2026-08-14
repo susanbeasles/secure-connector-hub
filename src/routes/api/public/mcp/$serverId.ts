@@ -202,6 +202,32 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
         if (method === "tools/call") {
           const name = String(payload.params?.name ?? "");
           const args = (payload.params?.arguments ?? {}) as Record<string, unknown>;
+
+          // Every grant gets its own budget; a runaway agent throttles itself, not the fleet.
+          const { rateHit } = await import("@/lib/ratelimit.server");
+          const limit = Number(
+            (session.kind === "oauth" ? undefined : undefined) ??
+              server.rate_limit_per_min ??
+              60,
+          );
+          const verdict = await rateHit(`grant:${session.grantId ?? session.serverId}`, limit);
+          if (!verdict.allowed) {
+            await logEvent({
+              user_id: session.userId,
+              server_id: session.serverId,
+              level: "warn",
+              event: "rate.limited",
+              tool_name: name,
+              message: `${session.clientName} exceeded ${limit} calls/min`,
+            });
+            return textResult(
+              id,
+              `Rate limited: this grant allows ${limit} calls per minute. Retry in ${verdict.retryAfterSec}s.`,
+              true,
+              nextNonce,
+            );
+          }
+
           const tool = tools.find((t) => t.name === name);
           if (!tool) {
             const known = (allTools ?? []).some((t) => t.name === name);

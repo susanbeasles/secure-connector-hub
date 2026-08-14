@@ -17,6 +17,7 @@ import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ServersServerIdRouteImport } from './routes/servers.$serverId'
 import { Route as ServersNewRouteImport } from './routes/servers.new'
 import { Route as DotwellKnownOauthProtectedResourceSplatRouteImport } from './routes/[.]well-known/oauth-protected-resource.$'
+import { Route as ApiPublicCronHealthRouteImport } from './routes/api/public/cron/health'
 import { Route as ApiPublicMcpServerIdRouteImport } from './routes/api/public/mcp/$serverId'
 import { Route as ApiPublicOauthAuthorizeRouteImport } from './routes/api/public/oauth/authorize'
 import { Route as ApiPublicOauthMetadataRouteImport } from './routes/api/public/oauth/metadata'
@@ -66,6 +67,11 @@ const DotwellKnownOauthProtectedResourceSplatRoute =
     path: '/.well-known/oauth-protected-resource/$',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronHealthRoute = ApiPublicCronHealthRouteImport.update({
+  id: '/api/public/cron/health',
+  path: '/api/public/cron/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMcpServerIdRoute = ApiPublicMcpServerIdRouteImport.update({
   id: '/api/public/mcp/$serverId',
   path: '/api/public/mcp/$serverId',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
+  '/api/public/cron/health': typeof ApiPublicCronHealthRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
+  '/api/public/cron/health': typeof ApiPublicCronHealthRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/servers/$serverId': typeof ServersServerIdRoute
   '/servers/new': typeof ServersNewRoute
   '/.well-known/oauth-protected-resource/$': typeof DotwellKnownOauthProtectedResourceSplatRoute
+  '/api/public/cron/health': typeof ApiPublicCronHealthRoute
   '/api/public/mcp/$serverId': typeof ApiPublicMcpServerIdRoute
   '/api/public/oauth/authorize': typeof ApiPublicOauthAuthorizeRoute
   '/api/public/oauth/metadata': typeof ApiPublicOauthMetadataRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
+    | '/api/public/cron/health'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
+    | '/api/public/cron/health'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/servers/$serverId'
     | '/servers/new'
     | '/.well-known/oauth-protected-resource/$'
+    | '/api/public/cron/health'
     | '/api/public/mcp/$serverId'
     | '/api/public/oauth/authorize'
     | '/api/public/oauth/metadata'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   ServersServerIdRoute: typeof ServersServerIdRoute
   ServersNewRoute: typeof ServersNewRoute
   DotwellKnownOauthProtectedResourceSplatRoute: typeof DotwellKnownOauthProtectedResourceSplatRoute
+  ApiPublicCronHealthRoute: typeof ApiPublicCronHealthRoute
   ApiPublicMcpServerIdRoute: typeof ApiPublicMcpServerIdRoute
   ApiPublicOauthAuthorizeRoute: typeof ApiPublicOauthAuthorizeRoute
   ApiPublicOauthMetadataRoute: typeof ApiPublicOauthMetadataRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotwellKnownOauthProtectedResourceSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/health': {
+      id: '/api/public/cron/health'
+      path: '/api/public/cron/health'
+      fullPath: '/api/public/cron/health'
+      preLoaderRoute: typeof ApiPublicCronHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mcp/$serverId': {
       id: '/api/public/mcp/$serverId'
       path: '/api/public/mcp/$serverId'
@@ -328,6 +348,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServersNewRoute: ServersNewRoute,
   DotwellKnownOauthProtectedResourceSplatRoute:
     DotwellKnownOauthProtectedResourceSplatRoute,
+  ApiPublicCronHealthRoute: ApiPublicCronHealthRoute,
   ApiPublicMcpServerIdRoute: ApiPublicMcpServerIdRoute,
   ApiPublicOauthAuthorizeRoute: ApiPublicOauthAuthorizeRoute,
   ApiPublicOauthMetadataRoute: ApiPublicOauthMetadataRoute,
