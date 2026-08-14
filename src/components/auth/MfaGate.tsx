@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { enrollFactor, mfaStatus, mintRecoveryCodes } from "@/lib/mfa/mfa.functions";
 import { finishKeyRegistration, startKeyRegistration } from "@/lib/webauthn.functions";
+import { useWebauthn } from "@/hooks/useWebauthn";
 
 /**
  * A seat without a second factor gets the enrollment screen and nothing else.
@@ -20,6 +21,7 @@ export function MfaGate({ children }: { children: React.ReactNode }) {
   const [totp, setTotp] = useState<{ id: string; qr: string; secret: string } | null>(null);
   const [code, setCode] = useState("");
   const [codes, setCodes] = useState<string[] | null>(null);
+  const webauthn = useWebauthn();
 
   useEffect(() => {
     void mfaStatus({})
@@ -115,9 +117,21 @@ export function MfaGate({ children }: { children: React.ReactNode }) {
       </p>
 
       <div className="mt-5 space-y-3">
-        <Button className="w-full" disabled={busy} onClick={addPasskey}>
+        <Button
+          className="w-full"
+          disabled={busy || webauthn.state !== "ready"}
+          onClick={addPasskey}
+        >
           <Fingerprint className="size-4" /> Passkey or security key
         </Button>
+        {webauthn.state === "blocked-frame" ? (
+          <button
+            className="w-full text-[11px] text-muted-foreground hover:text-foreground"
+            onClick={() => window.open(window.location.href, "_blank", "noopener")}
+          >
+            Passkeys need a top-level window — open the console in its own tab
+          </button>
+        ) : null}
         {totp ? (
           <div className="space-y-3 rounded-md border border-border p-3">
             <img src={totp.qr} alt="TOTP enrollment QR code" className="mx-auto size-40" />
