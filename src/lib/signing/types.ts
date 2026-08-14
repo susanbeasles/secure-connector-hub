@@ -7,5 +7,5 @@ export type Signer = {
   /** ES256 signature over the signing input, returned as base64url raw r||s. */
   sign(input: string): Promise<string>;
   /** Where the private key actually lives — surfaced in the console. */
-  custody(): "kms" | "local";
+  custody(): "kms" | "vault" | "local";
 };
