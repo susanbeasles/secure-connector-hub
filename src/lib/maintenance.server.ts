@@ -1,5 +1,6 @@
 import { healthCheckLogic } from "./console.server";
 import { logEvent } from "./proxy.server";
+import { attest } from "./bootstrap.server";
 import { compactHistory } from "./retention.server";
 
 /**
@@ -71,7 +72,10 @@ export async function sweepFleet(origin: string) {
 
   const history = await compactHistory();
 
+  const attestation = await attest("scheduled fleet sweep");
+
   return {
+    attestation,
     checked,
     history,
     expiringCredentials: credentials?.length ?? 0,
