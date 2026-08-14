@@ -188,6 +188,67 @@ export function InsightsPanel({ serverId }: { serverId: string }) {
           ))
         )}
       </div>
+
+      <div className="panel overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-border p-3">
+          <p className="label-caps">Permanent history</p>
+          <Select value={historyDays} onValueChange={setHistoryDays}>
+            <SelectTrigger className="ml-auto w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {HISTORY_RANGES.map((r) => (
+                <SelectItem key={r.value} value={r.value}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => exportCsv(`aegis-history-${serverId}.csv`, history.data ?? [])}
+          >
+            <Download className="size-4" /> Export
+          </Button>
+        </div>
+        {(history.data ?? []).length === 0 ? (
+          <p className="p-5 text-sm text-muted-foreground">
+            Nothing rolled up yet — events are folded into daily history once they age past this
+            broker's retention window.
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs text-muted-foreground">
+              <tr className="border-b border-border">
+                <th className="p-3 font-medium">Day</th>
+                <th className="p-3 font-medium">Tool</th>
+                <th className="p-3 font-medium">Calls</th>
+                <th className="p-3 font-medium">Errors</th>
+                <th className="p-3 font-medium">p50</th>
+                <th className="p-3 font-medium">p95</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.data?.map((r) => (
+                <tr key={`${r.day}-${r.tool_name}`} className="border-b border-border last:border-0">
+                  <td className="p-3 tabular-nums">{r.day}</td>
+                  <td className="p-3 font-mono">{r.tool_name || "—"}</td>
+                  <td className="p-3 tabular-nums">{r.calls}</td>
+                  <td
+                    className={`p-3 tabular-nums ${r.errors > 0 ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    {r.errors}
+                  </td>
+                  <td className="p-3 tabular-nums">{r.p50_ms}ms</td>
+                  <td className="p-3 tabular-nums">{r.p95_ms}ms</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
+
   );
 }
