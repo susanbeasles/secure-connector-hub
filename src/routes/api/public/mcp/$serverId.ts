@@ -205,11 +205,7 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
 
           // Every grant gets its own budget; a runaway agent throttles itself, not the fleet.
           const { rateHit } = await import("@/lib/ratelimit.server");
-          const limit = Number(
-            (session.kind === "oauth" ? undefined : undefined) ??
-              server.rate_limit_per_min ??
-              60,
-          );
+          const limit = Number(session.rateLimitPerMin ?? server.rate_limit_per_min ?? 60);
           const verdict = await rateHit(`grant:${session.grantId ?? session.serverId}`, limit);
           if (!verdict.allowed) {
             await logEvent({
