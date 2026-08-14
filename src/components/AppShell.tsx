@@ -7,6 +7,8 @@ import { useOperator } from "@/hooks/useOperator";
 import { useAuth } from "@/hooks/useAuth";
 import { ClaimGate } from "@/components/ClaimGate";
 import { MfaGate } from "@/components/auth/MfaGate";
+import { ManifestDrop } from "@/components/tools/ManifestDrop";
+
 
 
 async function signOut(then: () => void) {
