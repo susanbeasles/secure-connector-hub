@@ -33,7 +33,7 @@ function b64url(bytes: Uint8Array): string {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function fromB64url(value: string): Uint8Array<ArrayBuffer> {
+export function fromB64url(value: string): Uint8Array<ArrayBuffer> {
   const padded = value.replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(padded + "=".repeat((4 - (padded.length % 4)) % 4));
   const bytes = new Uint8Array(new ArrayBuffer(raw.length));
@@ -147,7 +147,7 @@ export async function registrationOptions(input: {
     attestationType: "none",
     excludeCredentials: (existing ?? []).map((c) => ({ id: c.credential_id as string })),
     authenticatorSelection: {
-      residentKey: "preferred",
+      residentKey: "required",
       userVerification: "required",
       ...(input.policy === "cross_platform"
         ? { authenticatorAttachment: "cross-platform" as const }

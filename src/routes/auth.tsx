@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { Fingerprint, ShieldCheck } from "lucide-react";
+import { startAuthentication } from "@simplewebauthn/browser";
+import { startPasskeySignIn, finishPasskeySignIn } from "@/lib/passkey.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -75,6 +77,23 @@ function AuthPage() {
     window.location.replace(next);
   }
 
+  async function passkey() {
+    setBusy(true);
+    try {
+      const origin = window.location.origin;
+      const { ticket, options } = await startPasskeySignIn({ data: { origin } });
+      const response = await startAuthentication({ optionsJSON: options as never });
+      const { tokenHash } = await finishPasskeySignIn({ data: { origin, ticket, response } });
+      const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
+      if (error) throw error;
+      window.location.replace(next);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Passkey sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function sso(provider: "google") {
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
@@ -133,9 +152,20 @@ function AuthPage() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>
+          <Button
+            variant="outline"
+            className="mt-3 w-full"
+            disabled={busy}
+            onClick={() => void passkey()}
+          >
+            <Fingerprint className="size-4" /> Security key or passkey
+          </Button>
           <Button variant="outline" className="mt-3 w-full" onClick={() => void sso("google")}>
             Google
           </Button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            Passkeys must be registered from Security settings on a signed-in session first.
+          </p>
 
           <button
             className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"

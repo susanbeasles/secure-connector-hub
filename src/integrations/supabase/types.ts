@@ -1075,7 +1075,7 @@ export type Database = {
           id: string
           purpose: string
           request_id: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           challenge: string
@@ -1085,7 +1085,7 @@ export type Database = {
           id?: string
           purpose: string
           request_id?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           challenge?: string
@@ -1095,7 +1095,7 @@ export type Database = {
           id?: string
           purpose?: string
           request_id?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
