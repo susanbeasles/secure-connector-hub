@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireOperator } from "./operator.middleware";
 
 export const getAuthorization = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { authorizationDetails } = await import("./oauth.server");
@@ -13,7 +13,7 @@ export const getAuthorization = createServerFn({ method: "POST" })
   });
 
 export const approveAuthorizationRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -32,7 +32,7 @@ export const approveAuthorizationRequest = createServerFn({ method: "POST" })
   });
 
 export const denyAuthorizationRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { denyAuthorization } = await import("./oauth.server");
@@ -40,7 +40,7 @@ export const denyAuthorizationRequest = createServerFn({ method: "POST" })
   });
 
 export const revokeGrant = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => z.object({ grantId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { revokeGrantById } = await import("./oauth.server");
@@ -51,7 +51,7 @@ const originInput = z.object({ requestId: z.string().uuid(), origin: z.string().
 
 /** Challenge for the hardware touch that authorizes one grant. */
 export const grantAssertionOptions = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => originInput.parse(input))
   .handler(async ({ data, context }) => {
     const { authorizationDetails } = await import("./oauth.server");
