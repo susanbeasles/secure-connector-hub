@@ -443,6 +443,54 @@ export type Database = {
           },
         ]
       }
+      operator_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["operator_role"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email: string
+          id?: string
+          role?: Database["public"]["Enums"]["operator_role"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["operator_role"]
+        }
+        Relationships: []
+      }
+      operators: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          role: Database["public"]["Enums"]["operator_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          role?: Database["public"]["Enums"]["operator_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          role?: Database["public"]["Enums"]["operator_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       rate_counters: {
         Row: {
           count: number
@@ -699,6 +747,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_operator: { Args: { _user_id: string }; Returns: boolean }
       rate_hit: {
         Args: { _subject: string; _window_seconds: number }
         Returns: number
@@ -708,6 +757,7 @@ export type Database = {
       approval_mode: "always_ask" | "always_allow"
       auth_kind: "none" | "api_key" | "bearer" | "basic" | "oauth2"
       health_state: "unknown" | "healthy" | "degraded" | "down"
+      operator_role: "owner" | "admin" | "viewer"
       server_kind: "mcp" | "connector"
     }
     CompositeTypes: {
@@ -839,6 +889,7 @@ export const Constants = {
       approval_mode: ["always_ask", "always_allow"],
       auth_kind: ["none", "api_key", "bearer", "basic", "oauth2"],
       health_state: ["unknown", "healthy", "degraded", "down"],
+      operator_role: ["owner", "admin", "viewer"],
       server_kind: ["mcp", "connector"],
     },
   },
