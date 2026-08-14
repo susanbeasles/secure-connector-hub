@@ -503,6 +503,33 @@ export type Database = {
         }
         Relationships: []
       }
+      signing_keys: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kid: string
+          private_jwk_encrypted: string
+          public_jwk: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kid: string
+          private_jwk_encrypted: string
+          public_jwk: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kid?: string
+          private_jwk_encrypted?: string
+          public_jwk?: Json
+        }
+        Relationships: []
+      }
       tools: {
         Row: {
           approval: Database["public"]["Enums"]["approval_mode"]
