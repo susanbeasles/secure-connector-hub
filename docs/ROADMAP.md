@@ -63,6 +63,11 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Upstream (provider-side) OAuth2 authorization-code flow with PKCE, sealed client secret, server-side refresh rotation, single-use handshake state (`/api/public/oauth/upstream-callback`, "Provider auth" tab)
 
 
-## Phase 6 — Catalogue
-- [ ] Curated starter templates (GitHub, Linear, Notion, Slack) with scoped tool sets
-- [ ] Import/export server definition as portable JSON
+## Phase 7 — Tool surface authoring (done)
+Three sources, one editable shape. No curated vendor templates — explicitly out of scope.
+- [x] JSON manifest paste/upload
+- [x] Inline form editor: method, path, name, description, approval, scopes, JSON Schema
+- [x] Pull the official public MCP server for a service, then customize every discovered tool to the same degree as a hand-built one (staged, editable, nothing written until saved)
+- [x] Per-tool inline edit in the broker console (not just add/delete/toggle)
+- [x] Export the broker's tool surface as a portable JSON manifest
+
