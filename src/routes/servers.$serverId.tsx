@@ -24,6 +24,7 @@ import { AppShell } from "@/components/AppShell";
 import { HealthDot } from "@/components/ui-bits";
 import { OAuthPanel } from "@/components/OAuthPanel";
 import { SecurityPanel } from "@/components/SecurityPanel";
+import { InsightsPanel } from "@/components/InsightsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,7 +194,7 @@ function ServerConsole() {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="access">Legacy bearer</TabsTrigger>
           <TabsTrigger value="approvals">Approvals</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
+          <TabsTrigger value="logs">Logs &amp; insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tools">
