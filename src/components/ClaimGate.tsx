@@ -78,30 +78,34 @@ export function ClaimGate({ onSignOut }: { onSignOut: () => void }) {
         other operator is added by invitation afterwards.
       </p>
       {state.data?.requiresSecret ? (
-        <div className="mt-4">
-          <Label className="label-caps">Bootstrap secret</Label>
-          <Input
-            className="mt-1"
-            type="password"
-            autoComplete="off"
-            placeholder="Deployment-time BOOTSTRAP_SECRET"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-          />
-        </div>
+        <>
+          <div className="mt-4">
+            <Label className="label-caps">Bootstrap secret</Label>
+            <Input
+              className="mt-1"
+              type="password"
+              autoComplete="off"
+              placeholder="Deployment-time BOOTSTRAP_SECRET"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+            />
+          </div>
+          <Button
+            className="mt-5 w-full"
+            disabled={claim.isPending || !secret}
+            onClick={() => claim.mutate()}
+          >
+            {claim.isPending ? <Loader2 className="size-4 animate-spin" /> : null} Claim ownership
+          </Button>
+        </>
       ) : (
-        <p className="mt-4 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-muted-foreground">
-          No BOOTSTRAP_SECRET is configured, so the first authenticated identity can take ownership.
-          Set one before exposing this deployment publicly.
+        <p className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-muted-foreground">
+          Unclaimed and unprotected: no BOOTSTRAP_SECRET is configured, so this console refuses to
+          seat anyone. First-come ownership is not a path here. Set the deployment secret, then
+          reload and claim with it.
         </p>
       )}
-      <Button
-        className="mt-5 w-full"
-        disabled={claim.isPending || (state.data?.requiresSecret && !secret)}
-        onClick={() => claim.mutate()}
-      >
-        {claim.isPending ? <Loader2 className="size-4 animate-spin" /> : null} Claim ownership
-      </Button>
+
       <Button className="mt-2 w-full" variant="ghost" onClick={onSignOut}>
         Sign out
       </Button>
