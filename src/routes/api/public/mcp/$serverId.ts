@@ -50,7 +50,13 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
         // Edge gate first: a request that never passed the tunnel is not worth parsing.
         const edge = await verifyAccess(request, "proxy");
         if (!edge.allowed && edge.mode === "enforce") {
-          await logEvent({
+          const { data: owner } = await supabaseAdmin
+            .from("servers")
+            .select("user_id")
+            .eq("id", params.serverId)
+            .maybeSingle();
+          if (owner) await logEvent({
+            user_id: owner.user_id,
             server_id: params.serverId,
             event: "access.denied",
             level: "warn",
