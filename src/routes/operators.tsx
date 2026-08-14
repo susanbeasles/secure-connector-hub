@@ -187,7 +187,7 @@ function OperatorsPage() {
             ))}
           </ul>
         ) : (
-          <Empty title="No pending invites" hint="Invited addresses claim their seat on first sign-in." />
+          <Empty title="No pending invites" body="Invited addresses claim their seat on first sign-in." />
         )}
       </section>
     </AppShell>
