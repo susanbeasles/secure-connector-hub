@@ -53,26 +53,3 @@ export const finishGithubVerify = createServerFn({ method: "POST" })
     const { githubVerify } = await import("./verify.server");
     return githubVerify(data);
   });
-
-export const startPasskeySignUp = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ email, origin }).parse(input))
-  .handler(async ({ data }) => {
-    const { signUpStart } = await import("../passkey.server");
-    return signUpStart(data);
-  });
-
-export const finishPasskeySignUp = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        userId: z.string().uuid(),
-        origin,
-        label: z.string().min(1).max(80),
-        response: z.unknown(),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data }) => {
-    const { signUpFinish } = await import("../passkey.server");
-    return signUpFinish({ ...data, response: data.response as never });
-  });
