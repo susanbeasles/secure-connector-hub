@@ -121,11 +121,17 @@ server is in context, the modal asks which server to attach to.
   middleware pair so no route or server function can bypass verification or MFA.
 - Passkey signup uses the existing WebAuthn plumbing with a pre-account
   registration ticket, then mints the session directly.
+- Domain path: `src/lib/domain/dns.server.ts` (DoH TXT lookup, no Node DNS),
+  `src/lib/domain/sso.server.ts` (metadata/discovery ingest, JWKS refresh, key
+  overlap, SP key rotation). SSO connections are created through the managed
+  SAML/OIDC configuration rather than hand-rolled assertion parsing.
 
 ## Order of work
 
 1. Verification + OTP-code plumbing, magic links removed
 2. Single auth plane UI (password / passkey / GitHub / Google, signup == signin)
 3. MFA enrollment gate + TOTP + recovery codes
-4. Ownership claim hardening + `domain_claims` scaffold
-5. Global manifest drop zone + modal
+4. Domain proof -> auto SSO provisioning -> signed in, with rotation
+5. Ownership claim hardening on top of the domain/verification primitives
+6. Global manifest drop zone + modal
+
