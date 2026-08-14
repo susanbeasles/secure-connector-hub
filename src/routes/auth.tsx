@@ -1,8 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Fingerprint, ShieldCheck } from "lucide-react";
-import { startAuthentication } from "@simplewebauthn/browser";
-import { startPasskeySignIn, finishPasskeySignIn } from "@/lib/passkey.functions";
+import { Fingerprint, Globe, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -10,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { startPasskeySignIn, finishPasskeySignIn } from "@/lib/passkey.functions";
+import {
+  finishPasskeySignUp,
+  githubVerifyStatus,
+  redeemEmailCode,
+  requestEmailCode,
+  startGithubVerify,
+  startPasskeySignUp,
+} from "@/lib/identity/verify.functions";
+import { DomainOnboarding } from "@/components/auth/DomainOnboarding";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -19,13 +28,15 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Authenticate to the Aegis zero-trust console for custom MCP servers and least-privilege connectors.",
+          "Verify and enter the Aegis zero-trust console: passkey, one-time code, or domain proof — one plane for both first entry and return.",
       },
       { property: "og:title", content: "Sign in — Aegis Broker Console" },
       {
         property: "og:description",
         content: "Operator access to the zero-trust MCP and connector control plane.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -38,13 +49,30 @@ function safeNext(raw: string | null): string {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
 
+type Step = "identify" | "code" | "passkey" | "domain";
+
+export type SessionResult = { accessToken: string; refreshToken: string };
+
+/** One place where a proven identity becomes a live session. */
+export async function adoptSession(tokens: SessionResult, next: string) {
+  const { error } = await supabase.auth.setSession({
+    access_token: tokens.accessToken,
+    refresh_token: tokens.refreshToken,
+  });
+  if (error) throw error;
+  window.location.replace(next);
+}
+
 function AuthPage() {
   const { session, loading } = useAuth();
-  const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [step, setStep] = useState<Step>("identify");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [label, setLabel] = useState("Primary passkey");
+  const [ticket, setTicket] = useState<{ ticket: string; sessionKey: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [github, setGithub] = useState(false);
+
   const next = safeNext(
     typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next"),
   );
@@ -53,126 +81,198 @@ function AuthPage() {
     if (!loading && session) window.location.replace(next);
   }, [loading, session, next]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    const returnTo = `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
-    const res =
-      mode === "signin"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: returnTo },
-          });
-    setBusy(false);
-    if (res.error) {
-      toast.error(res.error.message);
-      return;
-    }
-    if (mode === "signup" && !res.data.session) {
-      toast.success("Check your email to confirm.");
-      return;
-    }
-    window.location.replace(next);
-  }
+  useEffect(() => {
+    void githubVerifyStatus({}).then((s) => setGithub(s.configured)).catch(() => setGithub(false));
+  }, []);
 
-  async function passkey() {
+  async function guard<T>(run: () => Promise<T>) {
     setBusy(true);
     try {
-      const origin = window.location.origin;
-      const { ticket, options } = await startPasskeySignIn({ data: { origin } });
-      const response = await startAuthentication({ optionsJSON: options as never });
-      const { tokenHash } = await finishPasskeySignIn({ data: { origin, ticket, response } });
-      const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
-      if (error) throw error;
-      window.location.replace(next);
+      await run();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Passkey sign-in failed");
+      toast.error(e instanceof Error ? e.message : "That did not work");
     } finally {
       setBusy(false);
     }
   }
 
-  async function sso(provider: "google") {
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
+  const sendCode = () =>
+    guard(async () => {
+      const issued = await requestEmailCode({ data: { email } });
+      setTicket({ ticket: issued.ticket, sessionKey: issued.sessionKey });
+      setStep("code");
+      toast.success("Code sent — it only works in this tab");
     });
-    if (result.error) {
-      toast.error(result.error.message ?? "Sign-in failed");
-      return;
-    }
-    if (result.redirected) return;
-    window.location.replace(next);
-  }
 
+  const enterCode = () =>
+    guard(async () => {
+      if (!ticket) return;
+      const result = await redeemEmailCode({ data: { ...ticket, code } });
+      await adoptSession(result, next);
+    });
+
+  const passkeySignIn = () =>
+    guard(async () => {
+      const origin = window.location.origin;
+      const { ticket: t, options } = await startPasskeySignIn({ data: { origin } });
+      const response = await startAuthentication({ optionsJSON: options as never });
+      const result = await finishPasskeySignIn({ data: { origin, ticket: t, response } });
+      await adoptSession(result, next);
+    });
+
+  const passkeyCreate = () =>
+    guard(async () => {
+      const origin = window.location.origin;
+      const { userId, options } = await startPasskeySignUp({ data: { email, origin } });
+      const response = await startRegistration({ optionsJSON: options as never });
+      const result = await finishPasskeySignUp({ data: { userId, origin, label, response } });
+      await adoptSession(result, next);
+    });
+
+  const google = () =>
+    guard(async () => {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
+      });
+      if (result.error) throw new Error(result.error.message ?? "Sign-in failed");
+      if (!result.redirected) window.location.replace(next);
+    });
+
+  const githubVerify = () =>
+    guard(async () => {
+      const { url } = await startGithubVerify({
+        data: { redirectUri: `${window.location.origin}/auth/github` },
+      });
+      window.location.assign(url);
+    });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5">
+    <div className="flex min-h-screen items-center justify-center bg-background px-5 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center gap-2">
           <ShieldCheck className="size-6 text-primary" />
           <h1 className="text-lg font-semibold tracking-tight">Aegis Broker</h1>
         </div>
+
         <div className="panel p-6">
           <p className="label-caps">Operator access</p>
-          <h2 className="mt-1 text-xl font-semibold">
-            {mode === "signin" ? "Sign in" : "Claim or redeem a seat"}
-          </h2>
+          <h2 className="mt-1 text-xl font-semibold">Verify and enter</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Invite-only. The first identity to sign in claims ownership of this broker; after that,
-            only addresses the owner added get in — creating an account grants nothing on its own.
+            One plane for first entry and every return. Whatever proves who you are also signs you
+            in — no second credential prompt, no link to click.
           </p>
 
-          <form className="mt-5 space-y-4" onSubmit={submit}>
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
+          {step === "identify" ? (
+            <div className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Work email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email username webauthn"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                />
+              </div>
+              <Button className="w-full" disabled={busy || !email} onClick={sendCode}>
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                Email me a code
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={busy}
+                onClick={passkeySignIn}
+              >
+                <Fingerprint className="size-4" /> Passkey (MFA)
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={busy || !email}
+                onClick={() => setStep("passkey")}
+              >
+                <KeyRound className="size-4" /> Create a passkey for this address
+              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="ghost" disabled={busy} onClick={google}>
+                  Google
+                </Button>
+                <Button variant="ghost" disabled={busy || !github} onClick={githubVerify}>
+                  GitHub
+                </Button>
+              </div>
+              <button
+                className="flex w-full items-center justify-center gap-1.5 pt-1 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setStep("domain")}
+              >
+                <Globe className="size-3.5" /> I control a domain — verify that instead
+              </button>
+              <p className="text-center text-[11px] text-muted-foreground">
+                Google and GitHub are read only as address oracles: does the account you are already
+                signed into hold this address? Nothing else is requested or kept.
+              </p>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={busy}>
-              {mode === "signin" ? "Sign in" : "Create account"}
-            </Button>
-          </form>
-          <Button
-            variant="outline"
-            className="mt-3 w-full"
-            disabled={busy}
-            onClick={() => void passkey()}
-          >
-            <Fingerprint className="size-4" /> Security key or passkey
-          </Button>
-          <Button variant="outline" className="mt-3 w-full" onClick={() => void sso("google")}>
-            Google
-          </Button>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Passkeys must be registered from Security settings on a signed-in session first.
-          </p>
+          ) : null}
 
-          <button
-            className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          >
-            {mode === "signin" ? "Owner or invited? Create your login" : "Already have a login? Sign in"}
-          </button>
+          {step === "code" ? (
+            <div className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="code">Six-digit code</Label>
+                <Input
+                  id="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={8}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="000000"
+                  className="text-center font-mono text-lg tracking-[0.4em]"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Sent to {email}. Redeemable only in this tab — a code carried to another browser
+                  is rejected, which is why nothing in that mail is clickable.
+                </p>
+              </div>
+              <Button className="w-full" disabled={busy || code.length < 6} onClick={enterCode}>
+                {busy ? <Loader2 className="size-4 animate-spin" /> : null} Verify and enter
+              </Button>
+              <button
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setStep("identify")}
+              >
+                Use a different method
+              </button>
+            </div>
+          ) : null}
+
+          {step === "passkey" ? (
+            <div className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="label">Name this authenticator</Label>
+                <Input id="label" value={label} onChange={(e) => setLabel(e.target.value)} />
+                <p className="text-[11px] text-muted-foreground">
+                  Creates the identity for {email} and binds this key to it. The key's own
+                  biometric or PIN check is the second challenge, and it is required.
+                </p>
+              </div>
+              <Button className="w-full" disabled={busy} onClick={passkeyCreate}>
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Fingerprint className="size-4" />}
+                Create passkey and enter
+              </Button>
+              <button
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setStep("identify")}
+              >
+                Back
+              </button>
+            </div>
+          ) : null}
+
+          {step === "domain" ? (
+            <DomainOnboarding next={next} onBack={() => setStep("identify")} />
+          ) : null}
         </div>
       </div>
     </div>
