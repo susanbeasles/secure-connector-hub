@@ -53,6 +53,7 @@ const levelClass = (level: string) =>
 
 export function InsightsPanel({ serverId }: { serverId: string }) {
   const [windowHours, setWindowHours] = useState("24");
+  const [historyDays, setHistoryDays] = useState("90");
   const [level, setLevel] = useState<(typeof LEVELS)[number]>("all");
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
@@ -70,6 +71,12 @@ export function InsightsPanel({ serverId }: { serverId: string }) {
     queryFn: () => serverInsights({ data: filters }),
     refetchInterval: 30_000,
   });
+
+  const history = useQuery({
+    queryKey: ["history", serverId, historyDays],
+    queryFn: () => serverHistory({ data: { serverId, days: Number(historyDays) } }),
+  });
+
 
   return (
     <div className="space-y-4">
