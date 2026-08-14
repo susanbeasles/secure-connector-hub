@@ -17,3 +17,16 @@ export const serverInsights = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => insightsLogic(context.supabase as never, data));
+
+/** Permanent history: per-day rollups that outlive the hot log window. */
+export const serverHistory = createServerFn({ method: "POST" })
+  .middleware([requireOperator])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ serverId: z.string().uuid(), days: z.number().int().min(1).max(3650).default(90) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { historyLogic } = await import("./retention.server");
+    return historyLogic(context.supabase as never, data);
+  });

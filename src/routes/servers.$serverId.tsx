@@ -26,6 +26,8 @@ import { OAuthPanel } from "@/components/OAuthPanel";
 import { SecurityPanel } from "@/components/SecurityPanel";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { UpstreamPanel } from "@/components/UpstreamPanel";
+import { RuntimePanel } from "@/components/RuntimePanel";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -194,14 +196,20 @@ function ServerConsole() {
           <TabsTrigger value="upstream">Provider auth</TabsTrigger>
           <TabsTrigger value="oauth">OAuth grants</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="runtime">Runtime</TabsTrigger>
           <TabsTrigger value="access">Legacy bearer</TabsTrigger>
           <TabsTrigger value="approvals">Approvals</TabsTrigger>
           <TabsTrigger value="logs">Logs &amp; insights</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="runtime">
+          <RuntimePanel serverId={server.id} />
+        </TabsContent>
+
         <TabsContent value="tools">
           <ToolsPanel serverId={server.id} tools={data?.tools ?? []} onChange={refresh} />
         </TabsContent>
+
 
         <TabsContent value="creds">
           <CredentialsPanel
@@ -234,6 +242,7 @@ function ServerConsole() {
               rate_limit_per_min: Number(
                 (server as { rate_limit_per_min?: number }).rate_limit_per_min ?? 60,
               ),
+              retention_days: Number((server as { retention_days?: number }).retention_days ?? 30),
             }}
 
           />

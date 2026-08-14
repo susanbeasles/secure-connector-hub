@@ -23,12 +23,12 @@ export const Route = createFileRoute("/api/public/cron/health")({
       POST: async ({ request }) => {
         if (!authorized(request)) return json({ error: "unauthorized" }, 401);
         const { sweepFleet } = await import("@/lib/maintenance.server");
-        return json(await sweepFleet());
+        return json(await sweepFleet(new URL(request.url).origin));
       },
       GET: async ({ request }) => {
         if (!authorized(request)) return json({ error: "unauthorized" }, 401);
         const { sweepFleet } = await import("@/lib/maintenance.server");
-        return json(await sweepFleet());
+        return json(await sweepFleet(new URL(request.url).origin));
       },
     },
   },

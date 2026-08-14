@@ -55,6 +55,9 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Log filtering/search + root-cause view (per-tool error rate, p50/p95 latency)
 - [x] Rate limiting per grant (broker default configurable under Security)
 - [x] Automatic credential + grant expiry warnings (fleet sweep)
+- [x] Managed runtime targets (inline + Cloudflare Workers for Platforms), self-healing reconciliation
+- [x] Permanent history: daily rollups, verbatim archive, configurable hot-log retention, CSV export
+- [x] Zero-trust bootstrap: explicit ownership ceremony (`BOOTSTRAP_SECRET`), one-time recovery code, signing-key attestation chain
 - [ ] Cloudflare Access JWT verification in front of console + proxy; Zero Trust tunnel deployment notes
 - [x] Upstream (provider-side) OAuth2 authorization-code flow with PKCE, sealed client secret, server-side refresh rotation, single-use handshake state (`/api/public/oauth/upstream-callback`, "Provider auth" tab)
 

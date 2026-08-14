@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users, ShieldX } from "lucide-react";
+import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useOperator } from "@/hooks/useOperator";
 import { useAuth } from "@/hooks/useAuth";
+import { ClaimGate } from "@/components/ClaimGate";
 
 async function signOut(then: () => void) {
   await supabase.auth.signOut();
@@ -80,25 +81,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-5 py-8">
-        {denied ? <AccessDenied onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} /> : children}
+        {denied ? <ClaimGate onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} /> : children}
       </main>
-    </div>
-  );
-}
-
-function AccessDenied({ onSignOut }: { onSignOut: () => void }) {
-  return (
-    <div className="mx-auto max-w-md panel p-6 text-center">
-      <ShieldX className="mx-auto size-6 text-destructive" />
-      <h1 className="mt-3 text-lg font-semibold">Not an operator</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This broker belongs to a single owner. Signing in does not grant access — the owner has to
-        add your address to the operator roster first. Nothing in this console is reachable until
-        they do.
-      </p>
-      <Button className="mt-5" variant="outline" onClick={onSignOut}>
-        Sign out
-      </Button>
     </div>
   );
 }

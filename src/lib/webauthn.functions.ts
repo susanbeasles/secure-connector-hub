@@ -79,6 +79,7 @@ export const updateBrokerPolicy = createServerFn({ method: "POST" })
         webauthn_authenticator: z.enum(["cross_platform", "platform", "any"]),
         webauthn_sso_fallback: z.boolean(),
         rate_limit_per_min: z.number().int().min(1).max(6000),
+        retention_days: z.number().int().min(1).max(3650),
       })
       .parse(input),
   )

@@ -1,15 +1,19 @@
 import { healthCheckLogic } from "./console.server";
 import { logEvent } from "./proxy.server";
+import { attest } from "./bootstrap.server";
+import { compactHistory } from "./retention.server";
 
 /**
- * Unattended upkeep: probe every enabled broker and warn ahead of anything that
- * is about to expire. Invoked only by the signed cron route.
+ * Unattended upkeep: probe every enabled broker, reconcile its runtime, fold
+ * old history into permanent rollups, and warn ahead of anything expiring.
+ * Invoked only by the signed cron route.
  */
 
 const SOON_MS = 24 * 3600_000;
 
-export async function sweepFleet() {
+export async function sweepFleet(origin: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { Deploy } = await import("./deploy/index.server");
   const soon = new Date(Date.now() + SOON_MS).toISOString();
   const now = new Date().toISOString();
 
@@ -22,7 +26,10 @@ export async function sweepFleet() {
     (servers ?? []).map(async (s) => {
       try {
         const result = await healthCheckLogic(supabaseAdmin as never, s.user_id as string, s.id as string);
-        return { server: s.name as string, health: result.health };
+        const runtime = await Deploy.reconcile(s.id as string, origin).catch((e) => ({
+          status: `error: ${(e as Error).message}`,
+        }));
+        return { server: s.name as string, health: result.health, runtime: runtime.status };
       } catch (e) {
         return { server: s.name as string, health: "down", error: (e as Error).message };
       }
@@ -63,8 +70,14 @@ export async function sweepFleet() {
     });
   }
 
+  const history = await compactHistory();
+
+  const attestation = await attest("scheduled fleet sweep");
+
   return {
+    attestation,
     checked,
+    history,
     expiringCredentials: credentials?.length ?? 0,
     expiringGrants: grants?.length ?? 0,
   };
