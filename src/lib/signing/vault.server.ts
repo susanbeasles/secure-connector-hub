@@ -57,7 +57,7 @@ async function create(): Promise<Material> {
   const kid = await thumbprint(publicJwk);
   const { error } = await supabaseAdmin.from("signing_keys").insert({
     kid,
-    public_jwk: publicJwk as unknown as Record<string, unknown>,
+    public_jwk: JSON.parse(JSON.stringify(publicJwk)),
     private_jwk_encrypted: await encryptSecret(JSON.stringify(privateJwk)),
   });
   // A concurrent instance may have won the race; its key is the one that counts.
