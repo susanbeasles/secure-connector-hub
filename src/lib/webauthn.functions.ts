@@ -1,18 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireOperator } from "./operator.middleware";
 
 const origin = z.string().url();
 
 export const listSecurityKeys = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .handler(async ({ context }) => {
     const { listKeys } = await import("./webauthn.server");
     return listKeys(context.userId);
   });
 
 export const startKeyRegistration = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -32,7 +32,7 @@ export const startKeyRegistration = createServerFn({ method: "POST" })
   });
 
 export const finishKeyRegistration = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -55,7 +55,7 @@ export const finishKeyRegistration = createServerFn({ method: "POST" })
   });
 
 export const deleteSecurityKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => z.object({ keyId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -69,7 +69,7 @@ export const deleteSecurityKey = createServerFn({ method: "POST" })
   });
 
 export const updateBrokerPolicy = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({

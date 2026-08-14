@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireOperator } from "./operator.middleware";
 import { insightsLogic } from "./insights.server";
 
 export const serverInsights = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({

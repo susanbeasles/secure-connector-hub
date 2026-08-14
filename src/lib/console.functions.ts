@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireOperator } from "./operator.middleware";
 import {
   healthCheckLogic,
   introspectMcpLogic,
@@ -10,7 +10,7 @@ import {
 } from "./console.server";
 
 export const saveCredential = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -29,7 +29,7 @@ export const saveCredential = createServerFn({ method: "POST" })
   );
 
 export const issueToken = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -44,21 +44,21 @@ export const issueToken = createServerFn({ method: "POST" })
   );
 
 export const runHealthCheck = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) => z.object({ serverId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) =>
     healthCheckLogic(context.supabase as never, context.userId, data.serverId),
   );
 
 export const introspectMcp = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z.object({ url: z.string().url().startsWith("https://") }).parse(input),
   )
   .handler(async ({ data }) => introspectMcpLogic(data.url));
 
 export const testTool = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireOperator])
   .inputValidator((input: unknown) =>
     z
       .object({ toolId: z.string().uuid(), args: z.record(z.unknown()).default({}) })

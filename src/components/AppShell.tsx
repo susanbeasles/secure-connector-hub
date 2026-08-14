@@ -1,13 +1,21 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock } from "lucide-react";
+import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users, ShieldX } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useOperator } from "@/hooks/useOperator";
 import { useAuth } from "@/hooks/useAuth";
+
+async function signOut(then: () => void) {
+  await supabase.auth.signOut();
+  then();
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { operator, loading, signedIn } = useOperator();
   const navigate = useNavigate();
+  const denied = signedIn && !loading && !operator;
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,41 +25,52 @@ export function AppShell({ children }: { children: ReactNode }) {
             <ShieldCheck className="size-5 text-primary" />
             <span className="tracking-tight">Aegis Broker</span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
-            <Link
-              to="/"
-              className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-              activeOptions={{ exact: true }}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                <LayoutGrid className="size-4" /> Fleet
-              </span>
-            </Link>
-            <Link
-              to="/servers/new"
-              className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                <Plus className="size-4" /> New server
-              </span>
-            </Link>
-          </nav>
+          {operator ? (
+            <nav className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
+              <Link
+                to="/"
+                className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
+                activeProps={{ className: "bg-secondary text-foreground" }}
+                activeOptions={{ exact: true }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <LayoutGrid className="size-4" /> Fleet
+                </span>
+              </Link>
+              <Link
+                to="/servers/new"
+                className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
+                activeProps={{ className: "bg-secondary text-foreground" }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Plus className="size-4" /> New server
+                </span>
+              </Link>
+              <Link
+                to="/operators"
+                className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
+                activeProps={{ className: "bg-secondary text-foreground" }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Users className="size-4" /> Operators
+                </span>
+              </Link>
+            </nav>
+          ) : null}
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground md:inline-flex">
               <Lock className="size-3" /> zero-trust mode
             </span>
             {user ? (
               <>
-                <span className="hidden text-xs text-muted-foreground lg:inline">{user.email}</span>
+                <span className="hidden text-xs text-muted-foreground lg:inline">
+                  {user.email}
+                  {operator ? ` · ${operator.role}` : ""}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    navigate({ to: "/auth" });
-                  }}
+                  onClick={() => void signOut(() => navigate({ to: "/auth" }))}
                 >
                   <LogOut className="size-4" />
                 </Button>
@@ -60,7 +79,26 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-5 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-5 py-8">
+        {denied ? <AccessDenied onSignOut={() => void signOut(() => navigate({ to: "/auth" }))} /> : children}
+      </main>
+    </div>
+  );
+}
+
+function AccessDenied({ onSignOut }: { onSignOut: () => void }) {
+  return (
+    <div className="mx-auto max-w-md panel p-6 text-center">
+      <ShieldX className="mx-auto size-6 text-destructive" />
+      <h1 className="mt-3 text-lg font-semibold">Not an operator</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        This broker belongs to a single owner. Signing in does not grant access — the owner has to
+        add your address to the operator roster first. Nothing in this console is reachable until
+        they do.
+      </p>
+      <Button className="mt-5" variant="outline" onClick={onSignOut}>
+        Sign out
+      </Button>
     </div>
   );
 }
