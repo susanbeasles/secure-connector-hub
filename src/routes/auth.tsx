@@ -75,7 +75,7 @@ function AuthPage() {
     window.location.replace(next);
   }
 
-  async function sso(provider: "google" | "microsoft") {
+  async function sso(provider: "google") {
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
     });
@@ -86,6 +86,7 @@ function AuthPage() {
     if (result.redirected) return;
     window.location.replace(next);
   }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5">
@@ -132,14 +133,10 @@ function AuthPage() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={() => void sso("google")}>
-              Google
-            </Button>
-            <Button variant="outline" onClick={() => void sso("microsoft")}>
-              Entra ID
-            </Button>
-          </div>
+          <Button variant="outline" className="mt-3 w-full" onClick={() => void sso("google")}>
+            Google
+          </Button>
+
           <button
             className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
