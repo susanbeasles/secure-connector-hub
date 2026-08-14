@@ -45,6 +45,25 @@ export const Route = createFileRoute("/api/public/mcp/$serverId")({
         const { authorizeBearer, sessionAllows } = await import("@/lib/oauth.server");
         const { verifyProof, mintNonce, effectiveMode, DpopError } = await import("@/lib/dpop.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { verifyAccess } = await import("@/lib/access/index.server");
+
+        // Edge gate first: a request that never passed the tunnel is not worth parsing.
+        const edge = await verifyAccess(request, "proxy");
+        if (!edge.allowed && edge.mode === "enforce") {
+          const { data: owner } = await supabaseAdmin
+            .from("servers")
+            .select("user_id")
+            .eq("id", params.serverId)
+            .maybeSingle();
+          if (owner) await logEvent({
+            user_id: owner.user_id,
+            server_id: params.serverId,
+            event: "access.denied",
+            level: "warn",
+            message: `Cloudflare Access rejected a proxy call: ${edge.reason}`,
+          });
+          return rpcError(null, -32001, `Cloudflare Access: ${edge.reason}`, 403);
+        }
 
         let payload: { id?: unknown; method?: string; params?: any };
         try {

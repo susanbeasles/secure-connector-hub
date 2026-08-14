@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useOperator } from "@/hooks/useOperator";
 import { cancelInvite, invite, removeOperator, roster } from "@/lib/operator.functions";
+import { AccessGateCard } from "@/components/AccessGateCard";
 
 export const Route = createFileRoute("/operators")({
   ssr: false,
@@ -103,6 +104,8 @@ function OperatorsPage() {
           need a seat here; they authenticate against their own OAuth grant.
         </p>
       </header>
+
+      <AccessGateCard />
 
       {canManage ? (
         <section className="panel mb-6 p-5">

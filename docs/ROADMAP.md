@@ -58,7 +58,8 @@ Status legend: [x] done · [~] partial · [ ] not started
 - [x] Managed runtime targets (inline + Cloudflare Workers for Platforms), self-healing reconciliation
 - [x] Permanent history: daily rollups, verbatim archive, configurable hot-log retention, CSV export
 - [x] Zero-trust bootstrap: explicit ownership ceremony (`BOOTSTRAP_SECRET`), one-time recovery code, signing-key attestation chain
-- [ ] Cloudflare Access JWT verification in front of console + proxy; Zero Trust tunnel deployment notes
+- [x] Cloudflare Access JWT verification in front of console + proxy (`src/lib/access/`): team JWKS with rotation-safe cache, per-surface audiences, `off`/`monitor`/`enforce` rollout, denied proxy calls audited as `access.denied`, status readout on the Operators page
+  - Env: `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, optional `CF_ACCESS_PROXY_AUD`, `CF_ACCESS_MODE`
 - [x] Upstream (provider-side) OAuth2 authorization-code flow with PKCE, sealed client secret, server-side refresh rotation, single-use handshake state (`/api/public/oauth/upstream-callback`, "Provider auth" tab)
 
 
