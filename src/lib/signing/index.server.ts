@@ -1,13 +1,13 @@
 import { kmsSigner } from "./kms.server";
-import { localSigner } from "./local.server";
+import { vaultSigner } from "./vault.server";
 import type { Signer } from "./types";
 
 let active: Signer | null = null;
 
 /**
  * The single entry point every consumer uses to sign anything.
- * KMS is used whenever it is configured; otherwise the software key keeps the
- * broker functional and the console reports the weaker custody honestly.
+ * KMS is used whenever it is configured; otherwise the vault-sealed key keeps a
+ * durable broker identity and the console reports the weaker custody honestly.
  */
 export function signer(): Signer {
   if (active) return active;
@@ -18,7 +18,7 @@ export function signer(): Signer {
   active =
     keyId && region && accessKeyId && secretAccessKey
       ? kmsSigner({ keyId, region, accessKeyId, secretAccessKey })
-      : localSigner();
+      : vaultSigner();
   return active;
 }
 
