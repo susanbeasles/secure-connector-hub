@@ -147,7 +147,7 @@ export async function registrationOptions(input: {
     attestationType: "none",
     excludeCredentials: (existing ?? []).map((c) => ({ id: c.credential_id as string })),
     authenticatorSelection: {
-      residentKey: "preferred",
+      residentKey: "required",
       userVerification: "required",
       ...(input.policy === "cross_platform"
         ? { authenticatorAttachment: "cross-platform" as const }
