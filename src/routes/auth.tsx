@@ -152,9 +152,20 @@ function AuthPage() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>
+          <Button
+            variant="outline"
+            className="mt-3 w-full"
+            disabled={busy}
+            onClick={() => void passkey()}
+          >
+            <Fingerprint className="size-4" /> Security key or passkey
+          </Button>
           <Button variant="outline" className="mt-3 w-full" onClick={() => void sso("google")}>
             Google
           </Button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            Passkeys must be registered from Security settings on a signed-in session first.
+          </p>
 
           <button
             className="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground"
