@@ -26,6 +26,8 @@ import { OAuthPanel } from "@/components/OAuthPanel";
 import { SecurityPanel } from "@/components/SecurityPanel";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { UpstreamPanel } from "@/components/UpstreamPanel";
+import { RuntimePanel } from "@/components/RuntimePanel";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
