@@ -13,9 +13,9 @@ export type UpstreamConfig = {
   authorizeUrl: string;
   tokenUrl: string;
   clientId: string;
-  clientSecret?: string;
+  clientSecret?: string | undefined;
   scopes: string[];
-  audience?: string;
+  audience?: string | undefined;
   headerName: string;
   valueTemplate: string;
 };
