@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Fingerprint, Globe, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import { ExternalLink, Fingerprint, Globe, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -11,13 +11,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { startPasskeySignIn, finishPasskeySignIn } from "@/lib/passkey.functions";
 import {
-  finishPasskeySignUp,
   githubVerifyStatus,
   redeemEmailCode,
   requestEmailCode,
   startGithubVerify,
-  startPasskeySignUp,
 } from "@/lib/identity/verify.functions";
+import { useWebauthn } from "@/hooks/useWebauthn";
 import { DomainOnboarding } from "@/components/auth/DomainOnboarding";
 
 export const Route = createFileRoute("/auth")({
@@ -49,7 +48,7 @@ function safeNext(raw: string | null): string {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
 
-type Step = "identify" | "code" | "passkey" | "domain";
+type Step = "identify" | "code" | "domain";
 
 export type SessionResult = { accessToken: string; refreshToken: string };
 
@@ -68,10 +67,10 @@ function AuthPage() {
   const [step, setStep] = useState<Step>("identify");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [label, setLabel] = useState("Primary passkey");
   const [ticket, setTicket] = useState<{ ticket: string; sessionKey: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [github, setGithub] = useState(false);
+  const webauthn = useWebauthn();
 
   const next = safeNext(
     typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next"),
@@ -120,14 +119,6 @@ function AuthPage() {
       await adoptSession(result, next);
     });
 
-  const passkeyCreate = () =>
-    guard(async () => {
-      const origin = window.location.origin;
-      const { userId, options } = await startPasskeySignUp({ data: { email, origin } });
-      const response = await startRegistration({ optionsJSON: options as never });
-      const result = await finishPasskeySignUp({ data: { userId, origin, label, response } });
-      await adoptSession(result, next);
-    });
 
   const google = () =>
     guard(async () => {
@@ -182,19 +173,20 @@ function AuthPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={busy}
+                disabled={busy || webauthn.state !== "ready"}
                 onClick={passkeySignIn}
               >
-                <Fingerprint className="size-4" /> Passkey (MFA)
+                <Fingerprint className="size-4" /> Passkey (MFA) — no email needed
               </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                disabled={busy || !email}
-                onClick={() => setStep("passkey")}
-              >
-                <KeyRound className="size-4" /> Create a passkey for this address
-              </Button>
+              {webauthn.state === "blocked-frame" ? (
+                <button
+                  className="flex w-full items-center justify-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+                  onClick={() => window.open(window.location.href, "_blank", "noopener")}
+                >
+                  <ExternalLink className="size-3.5" /> Passkeys need a top-level window — open the
+                  console in its own tab
+                </button>
+              ) : null}
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="ghost" disabled={busy} onClick={google}>
                   Google
@@ -210,7 +202,8 @@ function AuthPage() {
                 <Globe className="size-3.5" /> I control a domain — verify that instead
               </button>
               <p className="text-center text-[11px] text-muted-foreground">
-                Google and GitHub are read only as address oracles: does the account you are already
+                A passkey is created with the seat it belongs to, never bolted onto an address
+                later from a signed-out browser. Google and GitHub are read only as address oracles: does the account you are already
                 signed into hold this address? Nothing else is requested or kept.
               </p>
             </div>
@@ -243,29 +236,6 @@ function AuthPage() {
                 onClick={() => setStep("identify")}
               >
                 Use a different method
-              </button>
-            </div>
-          ) : null}
-
-          {step === "passkey" ? (
-            <div className="mt-5 space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="label">Name this authenticator</Label>
-                <Input id="label" value={label} onChange={(e) => setLabel(e.target.value)} />
-                <p className="text-[11px] text-muted-foreground">
-                  Creates the identity for {email} and binds this key to it. The key's own
-                  biometric or PIN check is the second challenge, and it is required.
-                </p>
-              </div>
-              <Button className="w-full" disabled={busy} onClick={passkeyCreate}>
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <Fingerprint className="size-4" />}
-                Create passkey and enter
-              </Button>
-              <button
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setStep("identify")}
-              >
-                Back
               </button>
             </div>
           ) : null}
