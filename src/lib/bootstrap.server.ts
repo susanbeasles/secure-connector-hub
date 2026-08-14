@@ -50,8 +50,10 @@ export async function claimState(): Promise<ClaimState> {
 }
 
 /**
- * Take the owner seat. Returns the recovery code exactly once — it is stored
- * only as a hash, so a lost code is unrecoverable by design.
+ * Take the owner seat. Ownership is never "whoever signed in first": the
+ * deployment secret must exist and match, and the identity must already carry
+ * a verified second factor. Returns the recovery code exactly once — it is
+ * stored only as a hash, so a lost code is unrecoverable by design.
  */
 export async function claimInstance(input: {
   userId: string;
@@ -62,9 +64,19 @@ export async function claimInstance(input: {
   if (state.claimed) throw new Error("This instance is already claimed.");
 
   const expected = bootstrapSecret();
-  if (expected && !constantTimeEqual(input.secret.trim(), expected)) {
+  if (!expected) {
+    throw new Error(
+      "This deployment has no BOOTSTRAP_SECRET, so no identity can be seated. Set one, then claim.",
+    );
+  }
+  if (!constantTimeEqual(input.secret.trim(), expected)) {
     throw new Error("Bootstrap secret rejected.");
   }
+
+  const { mfaState } = await import("../mfa/factors.server");
+  const mfa = await mfaState(input.userId);
+  if (!mfa.enrolled) throw new Error("Enroll a verified second factor before claiming.");
+
 
   const db = await admin();
   const code = recoveryCode();
