@@ -9,9 +9,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const requireOperator = createMiddleware({ type: "function" })
   .middleware([requireSupabaseAuth])
   .server(async ({ next, context }) => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { guardAccess } = await import("./access/index.server");
+    await guardAccess(getRequest(), "console");
     const { resolveOperator } = await import("./operator.server");
     const email = (context.claims as { email?: string }).email;
     const operator = await resolveOperator(context.userId, email);
     if (!operator) throw new Error("Forbidden: this account is not an operator of this broker");
     return next({ context: { operator } });
   });
+
