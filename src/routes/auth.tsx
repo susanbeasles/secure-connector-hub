@@ -75,7 +75,7 @@ function AuthPage() {
     window.location.replace(next);
   }
 
-  async function sso(provider: "google" | "microsoft") {
+  async function sso(provider: "google") {
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth?next=${encodeURIComponent(next)}`,
     });
@@ -86,6 +86,7 @@ function AuthPage() {
     if (result.redirected) return;
     window.location.replace(next);
   }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5">
