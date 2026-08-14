@@ -115,7 +115,14 @@ export function InsightsPanel({ serverId }: { serverId: string }) {
         <Button variant="secondary" onClick={() => setSearch(draft.trim())}>
           Filter
         </Button>
+        <Button
+          variant="ghost"
+          onClick={() => exportCsv(`aegis-logs-${serverId}.csv`, data?.logs ?? [])}
+        >
+          <Download className="size-4" /> Export
+        </Button>
         {isFetching ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
+
         <span className="ml-auto text-xs text-muted-foreground">
           {data?.totals.calls ?? 0} events · {data?.totals.errors ?? 0} errors ·{" "}
           {data?.totals.warnings ?? 0} warnings
