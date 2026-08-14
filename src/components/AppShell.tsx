@@ -24,6 +24,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {signedIn ? <ManifestDrop /> : null}
+
       <header className="sticky top-0 z-30 border-b border-border bg-surface/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-5">
           <Link to="/" className="flex items-center gap-2 font-semibold">
