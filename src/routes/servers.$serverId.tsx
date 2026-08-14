@@ -24,6 +24,7 @@ import { AppShell } from "@/components/AppShell";
 import { HealthDot } from "@/components/ui-bits";
 import { OAuthPanel } from "@/components/OAuthPanel";
 import { SecurityPanel } from "@/components/SecurityPanel";
+import { InsightsPanel } from "@/components/InsightsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,7 +194,7 @@ function ServerConsole() {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="access">Legacy bearer</TabsTrigger>
           <TabsTrigger value="approvals">Approvals</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
+          <TabsTrigger value="logs">Logs &amp; insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tools">
@@ -224,7 +225,11 @@ function ServerConsole() {
               ),
               webauthn_sso_fallback:
                 (server as { webauthn_sso_fallback?: boolean }).webauthn_sso_fallback ?? true,
+              rate_limit_per_min: Number(
+                (server as { rate_limit_per_min?: number }).rate_limit_per_min ?? 60,
+              ),
             }}
+
           />
         </TabsContent>
 
@@ -289,38 +294,9 @@ function ServerConsole() {
         </TabsContent>
 
         <TabsContent value="logs">
-          <div className="panel divide-y divide-border font-mono text-xs">
-            {(data?.logs ?? []).length === 0 ? (
-              <p className="p-5 font-sans text-sm text-muted-foreground">No events recorded.</p>
-            ) : (
-              data?.logs.map((l) => (
-                <div key={l.id} className="flex gap-3 p-3">
-                  <span className="shrink-0 text-muted-foreground">
-                    {new Date(l.created_at).toLocaleString()}
-                  </span>
-                  <span
-                    className={
-                      l.level === "error"
-                        ? "shrink-0 text-destructive"
-                        : l.level === "warn"
-                          ? "shrink-0 text-warning"
-                          : "shrink-0 text-muted-foreground"
-                    }
-                  >
-                    {l.level}
-                  </span>
-                  <span className="shrink-0">{l.event}</span>
-                  <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                    {l.tool_name ? `${l.tool_name} — ` : ""}
-                    {l.message}
-                  </span>
-                  {l.duration_ms ? <span className="shrink-0">{l.duration_ms}ms</span> : null}
-                  {l.status_code ? <span className="shrink-0">{l.status_code}</span> : null}
-                </div>
-              ))
-            )}
-          </div>
+          <InsightsPanel serverId={serverId} />
         </TabsContent>
+
       </Tabs>
     </AppShell>
   );

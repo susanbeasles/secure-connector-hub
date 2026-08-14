@@ -298,6 +298,7 @@ export type Database = {
           id: string
           last_used_at: string | null
           max_calls: number | null
+          rate_limit_per_min: number | null
           refresh_generation: number
           refresh_token_hash: string | null
           retired_refresh_hash: string | null
@@ -319,6 +320,7 @@ export type Database = {
           id?: string
           last_used_at?: string | null
           max_calls?: number | null
+          rate_limit_per_min?: number | null
           refresh_generation?: number
           refresh_token_hash?: string | null
           retired_refresh_hash?: string | null
@@ -340,6 +342,7 @@ export type Database = {
           id?: string
           last_used_at?: string | null
           max_calls?: number | null
+          rate_limit_per_min?: number | null
           refresh_generation?: number
           refresh_token_hash?: string | null
           retired_refresh_hash?: string | null
@@ -440,6 +443,24 @@ export type Database = {
           },
         ]
       }
+      rate_counters: {
+        Row: {
+          count: number
+          subject: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          subject: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          subject?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       servers: {
         Row: {
           auth_type: Database["public"]["Enums"]["auth_kind"]
@@ -454,6 +475,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["server_kind"]
           last_health_check: string | null
           name: string
+          rate_limit_per_min: number
           slug: string
           updated_at: string
           user_id: string
@@ -474,6 +496,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["server_kind"]
           last_health_check?: string | null
           name: string
+          rate_limit_per_min?: number
           slug: string
           updated_at?: string
           user_id?: string
@@ -494,6 +517,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["server_kind"]
           last_health_check?: string | null
           name?: string
+          rate_limit_per_min?: number
           slug?: string
           updated_at?: string
           user_id?: string
@@ -675,7 +699,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      rate_hit: {
+        Args: { _subject: string; _window_seconds: number }
+        Returns: number
+      }
     }
     Enums: {
       approval_mode: "always_ask" | "always_allow"

@@ -50,13 +50,14 @@ Status legend: [x] done · [~] partial · [ ] not started
 - WebAuthn touch on the consent screen, policy per broker: never / writes /
   destructive / always, and physical-key-only, device-key, or any authenticator.
 
-## Phase 6 — Ops hardening (next)
-- [ ] Scheduled health checks (cron endpoint under `/api/public/`)
-- [ ] Log filtering/search + root-cause view (group by tool, error rate, p95 latency)
-- [ ] Rate limiting per grant
-- [ ] Automatic credential + grant expiry warnings
+## Phase 6 — Ops hardening (in progress)
+- [x] Scheduled health checks (`POST /api/public/cron/health`, `x-cron-secret`)
+- [x] Log filtering/search + root-cause view (per-tool error rate, p50/p95 latency)
+- [x] Rate limiting per grant (broker default configurable under Security)
+- [x] Automatic credential + grant expiry warnings (fleet sweep)
 - [ ] Cloudflare Access JWT verification in front of console + proxy; Zero Trust tunnel deployment notes
 - [ ] Upstream (provider-side) OAuth2 authorization-code flow with refresh rotation
+
 
 ## Phase 6 — Catalogue
 - [ ] Curated starter templates (GitHub, Linear, Notion, Slack) with scoped tool sets

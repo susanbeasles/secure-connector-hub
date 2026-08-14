@@ -497,6 +497,8 @@ export type AuthorizedSession = {
   clientName: string;
   expiresAt: string;
   boundJkt: string | null;
+  /** Calls per minute this session may make; null falls back to the broker default. */
+  rateLimitPerMin: number | null;
 };
 
 /** Resolve a bearer token to a session. OAuth grants carry scopes; legacy tokens are unscoped. */
@@ -535,6 +537,7 @@ export async function authorizeBearer(
       clientName: data.client_name,
       expiresAt: data.grant_expires_at,
       boundJkt: data.cnf_jkt ?? null,
+      rateLimitPerMin: data.rate_limit_per_min ?? null,
     };
   }
 
@@ -550,6 +553,7 @@ export async function authorizeBearer(
     clientName: "Legacy bearer client",
     expiresAt: legacy.expires_at,
     boundJkt: null,
+    rateLimitPerMin: null,
   };
 }
 
