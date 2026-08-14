@@ -27,6 +27,7 @@ import { SecurityPanel } from "@/components/SecurityPanel";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { UpstreamPanel } from "@/components/UpstreamPanel";
 import { RuntimePanel } from "@/components/RuntimePanel";
+import { ToolsPanel } from "@/components/tools/ToolsPanel";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,7 +208,12 @@ function ServerConsole() {
         </TabsContent>
 
         <TabsContent value="tools">
-          <ToolsPanel serverId={server.id} tools={data?.tools ?? []} onChange={refresh} />
+          <ToolsPanel
+            serverId={server.id}
+            serverSlug={server.slug}
+            tools={(data?.tools ?? []) as never}
+            onChange={refresh}
+          />
         </TabsContent>
 
 
@@ -314,194 +320,6 @@ function ServerConsole() {
 
       </Tabs>
     </AppShell>
-  );
-}
-
-function ToolsPanel({
-  serverId,
-  tools,
-  onChange,
-}: {
-  serverId: string;
-  tools: any[];
-  onChange: () => void;
-}) {
-  const [draft, setDraft] = useState({
-    name: "",
-    description: "",
-    method: "GET",
-    path: "/",
-    approval: "always_ask",
-    schema: '{\n  "type": "object",\n  "properties": {}\n}',
-  });
-  const [testing, setTesting] = useState<string | null>(null);
-
-  async function add() {
-    try {
-      const { error } = await supabase.from("tools").insert({
-        server_id: serverId,
-        name: draft.name,
-        description: draft.description,
-        method: draft.method,
-        path: draft.path,
-        approval: draft.approval as "always_ask",
-        input_schema: JSON.parse(draft.schema) as never,
-      });
-      if (error) throw new Error(error.message);
-      setDraft({ ...draft, name: "", description: "", path: "/" });
-      toast.success("Tool added");
-      onChange();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Invalid tool");
-    }
-  }
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-      <div className="space-y-3">
-        {tools.length === 0 ? (
-          <p className="panel p-5 text-sm text-muted-foreground">
-            No tools exposed. Nothing an assistant can call — add endpoints on the right.
-          </p>
-        ) : (
-          tools.map((t) => (
-            <div key={t.id} className="panel p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="font-mono text-[10px]">
-                  {t.method}
-                </Badge>
-                <span className="font-mono text-sm font-medium">{t.name}</span>
-                <code className="truncate font-mono text-xs text-muted-foreground">{t.path}</code>
-                <div className="ml-auto flex items-center gap-3">
-                  <Select
-                    value={t.approval}
-                    onValueChange={async (v) => {
-                      await supabase.from("tools").update({ approval: v as "always_ask" }).eq("id", t.id);
-                      onChange();
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-36 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="always_ask">Always ask</SelectItem>
-                      <SelectItem value="always_allow">Always allow</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Switch
-                    checked={t.enabled}
-                    onCheckedChange={async (v) => {
-                      await supabase.from("tools").update({ enabled: v }).eq("id", t.id);
-                      onChange();
-                    }}
-                  />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    disabled={testing === t.id}
-                    onClick={async () => {
-                      setTesting(t.id);
-                      try {
-                        const res = await testTool({ data: { toolId: t.id, args: {} } });
-                        toast.success(`Upstream ${(res as any).status ?? "responded"}`);
-                      } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "Call failed");
-                      } finally {
-                        setTesting(null);
-                        onChange();
-                      }
-                    }}
-                  >
-                    {testing === t.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Play className="size-4" />
-                    )}
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={async () => {
-                      await supabase.from("tools").delete().eq("id", t.id);
-                      onChange();
-                    }}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              </div>
-              {t.description ? (
-                <p className="mt-2 text-xs text-muted-foreground">{t.description}</p>
-              ) : null}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="panel space-y-3 p-5">
-        <h3 className="label-caps">Add endpoint</h3>
-        <div className="grid grid-cols-[100px_1fr] gap-2">
-          <Select value={draft.method} onValueChange={(v) => setDraft({ ...draft, method: v })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {["GET", "POST", "PATCH", "PUT", "DELETE"].map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            value={draft.path}
-            onChange={(e) => setDraft({ ...draft, path: e.target.value })}
-            placeholder="/repos/{{owner}}/{{repo}}/issues"
-            className="font-mono text-xs"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Tool name</Label>
-          <Input
-            value={draft.name}
-            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-            placeholder="create_issue"
-            className="font-mono"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Description shown to the model</Label>
-          <Input
-            value={draft.description}
-            onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Approval</Label>
-          <Select value={draft.approval} onValueChange={(v) => setDraft({ ...draft, approval: v })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="always_ask">Always ask</SelectItem>
-              <SelectItem value="always_allow">Always allow</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Input schema (JSON Schema)</Label>
-          <Textarea
-            rows={8}
-            value={draft.schema}
-            onChange={(e) => setDraft({ ...draft, schema: e.target.value })}
-            className="font-mono text-xs"
-          />
-        </div>
-        <Button className="w-full" disabled={!draft.name} onClick={() => void add()}>
-          <Plus className="size-4" /> Add tool
-        </Button>
-      </div>
-    </div>
   );
 }
 
