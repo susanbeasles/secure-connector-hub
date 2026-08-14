@@ -225,7 +225,11 @@ function ServerConsole() {
               ),
               webauthn_sso_fallback:
                 (server as { webauthn_sso_fallback?: boolean }).webauthn_sso_fallback ?? true,
+              rate_limit_per_min: Number(
+                (server as { rate_limit_per_min?: number }).rate_limit_per_min ?? 60,
+              ),
             }}
+
           />
         </TabsContent>
 
