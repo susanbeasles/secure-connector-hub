@@ -75,17 +75,21 @@ ownership recovery code).
 The current claim ceremony seats the first authenticated identity when no
 `BOOTSTRAP_SECRET` is set. That path is removed. Claiming requires **all** of:
 
-1. A verified identity (GitHub/Google match or emailed code) — not just an account.
-2. An enrolled MFA factor.
+1. A verified identity — GitHub/Google email match, an emailed code, or a
+   domain+IdP proof (which stands on its own and needs no mailbox check).
+2. An enrolled MFA factor. A domain-SSO identity satisfies this when the IdP
+   asserts an MFA'd authentication context; otherwise a local factor is required.
 3. The deployment secret when one is set; when none is set the console shows an
    explicit unclaimed-and-unprotected banner and refuses to seat until an operator
    sets one. No silent first-come ownership.
 
-Domain-scoped org claiming (DNS TXT proof, nobody else holding the domain) is
-scaffolded as a stored `domain_claims` table with `pending`/`verified` states and a
-TXT-record checker, but no cross-tenant org model is built until you decide whether
-this is hosted or single-tenant. Until then: matching a domain grants nothing —
-mutations against an existing instance always require a seat plus verified identity.
+Domain-scoped claiming uses a `domain_claims` table with `pending`/`verified`
+states, a TXT-record checker, and a one-domain-one-holder constraint so a second
+party cannot claim a zone already held. An unverified domain match grants nothing:
+mutations against an existing instance always require a seat plus a verified
+identity. Whether this ever runs multi-tenant is left open — the same table works
+for a single-tenant deployment claiming its own zone.
+
 
 ## 5. Manifest intake from anywhere
 
