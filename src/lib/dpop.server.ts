@@ -202,3 +202,8 @@ export function effectiveMode(serverMode: string, clientMode: string | null): Dp
   if (clientMode === "required" || clientMode === "disabled") return clientMode;
   return (["required", "preferred", "disabled"].includes(serverMode) ? serverMode : "preferred") as DpopMode;
 }
+
+/** Base64url SHA-256 of a request body — the value a client puts in `bdh`. */
+export async function bodyDigest(body: string): Promise<string> {
+  return bytesToB64url(await sha256(body));
+}
