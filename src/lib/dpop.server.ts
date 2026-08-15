@@ -126,8 +126,11 @@ export async function verifyProof(input: {
   method: string;
   url: string;
   accessToken?: string | null;
+  /** Base64url SHA-256 of the request body, bound into the proof as `bdh`. */
+  bodyHash?: string | null;
   requireNonce?: boolean;
 }): Promise<DpopProof> {
+
   if (!input.proof) throw new DpopError("Missing DPoP proof");
   const parts = input.proof.split(".");
   if (parts.length !== 3) throw new DpopError("Malformed DPoP proof");
@@ -177,6 +180,11 @@ export async function verifyProof(input: {
     }
   }
 
+  if (input.bodyHash && claims["bdh"] !== input.bodyHash) {
+    throw new DpopError("Proof is bound to a different payload");
+  }
+
+
   if (input.requireNonce && !(await nonceValid(claims["nonce"] as string | undefined))) {
     throw new DpopError("A fresh server nonce is required", "use_dpop_nonce");
   }
@@ -193,4 +201,9 @@ export async function verifyProof(input: {
 export function effectiveMode(serverMode: string, clientMode: string | null): DpopMode {
   if (clientMode === "required" || clientMode === "disabled") return clientMode;
   return (["required", "preferred", "disabled"].includes(serverMode) ? serverMode : "preferred") as DpopMode;
+}
+
+/** Base64url SHA-256 of a request body — the value a client puts in `bdh`. */
+export async function bodyDigest(body: string): Promise<string> {
+  return bytesToB64url(await sha256(body));
 }

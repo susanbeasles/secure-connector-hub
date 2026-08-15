@@ -28,6 +28,7 @@ import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/
 import { Route as ApiPublicOauthRevokeRouteImport } from './routes/api/public/oauth/revoke'
 import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 import { Route as ApiPublicOauthUpstreamCallbackRouteImport } from './routes/api/public/oauth/upstream-callback'
+import { Route as ApiPublicTelemetryV1EnrollRouteImport } from './routes/api/public/telemetry/v1/enroll'
 import { Route as ApiPublicTelemetryV1EventsRouteImport } from './routes/api/public/telemetry/v1/events'
 
 const IndexRoute = IndexRouteImport.update({
@@ -128,6 +129,12 @@ const ApiPublicOauthUpstreamCallbackRoute =
     path: '/api/public/oauth/upstream-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTelemetryV1EnrollRoute =
+  ApiPublicTelemetryV1EnrollRouteImport.update({
+    id: '/api/public/telemetry/v1/enroll',
+    path: '/api/public/telemetry/v1/enroll',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTelemetryV1EventsRoute =
   ApiPublicTelemetryV1EventsRouteImport.update({
     id: '/api/public/telemetry/v1/events',
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/enroll': typeof ApiPublicTelemetryV1EnrollRoute
   '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRoutesByTo {
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/enroll': typeof ApiPublicTelemetryV1EnrollRoute
   '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRoutesById {
@@ -200,6 +209,7 @@ export interface FileRoutesById {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/enroll': typeof ApiPublicTelemetryV1EnrollRoute
   '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRouteTypes {
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/enroll'
     | '/api/public/telemetry/v1/events'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/enroll'
     | '/api/public/telemetry/v1/events'
   id:
     | '__root__'
@@ -268,6 +280,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/enroll'
     | '/api/public/telemetry/v1/events'
   fileRoutesById: FileRoutesById
 }
@@ -290,6 +303,7 @@ export interface RootRouteChildren {
   ApiPublicOauthRevokeRoute: typeof ApiPublicOauthRevokeRoute
   ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
   ApiPublicOauthUpstreamCallbackRoute: typeof ApiPublicOauthUpstreamCallbackRoute
+  ApiPublicTelemetryV1EnrollRoute: typeof ApiPublicTelemetryV1EnrollRoute
   ApiPublicTelemetryV1EventsRoute: typeof ApiPublicTelemetryV1EventsRoute
 }
 
@@ -428,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthUpstreamCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/telemetry/v1/enroll': {
+      id: '/api/public/telemetry/v1/enroll'
+      path: '/api/public/telemetry/v1/enroll'
+      fullPath: '/api/public/telemetry/v1/enroll'
+      preLoaderRoute: typeof ApiPublicTelemetryV1EnrollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/telemetry/v1/events': {
       id: '/api/public/telemetry/v1/events'
       path: '/api/public/telemetry/v1/events'
@@ -469,6 +490,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicOauthRevokeRoute: ApiPublicOauthRevokeRoute,
   ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
   ApiPublicOauthUpstreamCallbackRoute: ApiPublicOauthUpstreamCallbackRoute,
+  ApiPublicTelemetryV1EnrollRoute: ApiPublicTelemetryV1EnrollRoute,
   ApiPublicTelemetryV1EventsRoute: ApiPublicTelemetryV1EventsRoute,
 }
 export const routeTree = rootRouteImport

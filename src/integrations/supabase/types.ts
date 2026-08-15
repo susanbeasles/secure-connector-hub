@@ -540,46 +540,64 @@ export type Database = {
       }
       ingest_sources: {
         Row: {
+          auth_mode: string
           created_at: string
           created_by: string | null
           disabled: boolean
+          enroll_expires_at: string | null
+          enroll_hash: string | null
+          enrolled_at: string | null
           event_count: number
           id: string
-          key_hash: string
-          key_prefix: string
+          jkt: string | null
+          key_hash: string | null
+          key_prefix: string | null
           kind: string
           last_seen_at: string | null
           name: string
+          public_jwk: Json | null
           redact_keys: string[]
           server_id: string | null
           updated_at: string
         }
         Insert: {
+          auth_mode?: string
           created_at?: string
           created_by?: string | null
           disabled?: boolean
+          enroll_expires_at?: string | null
+          enroll_hash?: string | null
+          enrolled_at?: string | null
           event_count?: number
           id?: string
-          key_hash: string
-          key_prefix: string
+          jkt?: string | null
+          key_hash?: string | null
+          key_prefix?: string | null
           kind?: string
           last_seen_at?: string | null
           name: string
+          public_jwk?: Json | null
           redact_keys?: string[]
           server_id?: string | null
           updated_at?: string
         }
         Update: {
+          auth_mode?: string
           created_at?: string
           created_by?: string | null
           disabled?: boolean
+          enroll_expires_at?: string | null
+          enroll_hash?: string | null
+          enrolled_at?: string | null
           event_count?: number
           id?: string
-          key_hash?: string
-          key_prefix?: string
+          jkt?: string | null
+          key_hash?: string | null
+          key_prefix?: string | null
           kind?: string
           last_seen_at?: string | null
           name?: string
+          public_jwk?: Json | null
           redact_keys?: string[]
           server_id?: string | null
           updated_at?: string

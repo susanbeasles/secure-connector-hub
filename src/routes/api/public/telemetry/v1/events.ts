@@ -18,8 +18,7 @@ function bearer(request: Request): string | null {
   return request.headers.get("x-ingest-key");
 }
 
-async function readBody(request: Request): Promise<unknown> {
-  const text = await request.text();
+function parseBody(text: string): unknown {
   const trimmed = text.trim();
   if (!trimmed) return [];
   if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
@@ -41,8 +40,21 @@ export const Route = createFileRoute("/api/public/telemetry/v1/events")({
     handlers: {
       POST: async ({ request }) => {
         const { resolveSource, capture, ingestBudget } = await import("@/lib/telemetry/ingest.server");
-        const source = await resolveSource(bearer(request));
-        if (!source) return json({ error: "invalid_ingest_key" }, 401);
+        const body = await request.text();
+        const proof = request.headers.get("dpop");
+
+        let source = null;
+        if (proof) {
+          const { resolveByProof } = await import("@/lib/telemetry/enroll.server");
+          try {
+            source = await resolveByProof({ proof, method: "POST", url: request.url, body });
+          } catch (e) {
+            return json({ error: "invalid_proof", detail: e instanceof Error ? e.message : "" }, 401);
+          }
+        } else {
+          source = await resolveSource(bearer(request));
+        }
+        if (!source) return json({ error: "unauthenticated_source" }, 401);
 
         const verdict = await ingestBudget(source.id);
         if (!verdict.allowed) {
@@ -52,13 +64,23 @@ export const Route = createFileRoute("/api/public/telemetry/v1/events")({
         }
 
         try {
-          const result = await capture(source, await readBody(request));
+          const result = await capture(source, parseBody(body));
           return json({ ok: true, accepted: result.accepted }, 202);
         } catch (e) {
           return json({ error: "invalid_payload", detail: e instanceof Error ? e.message : "" }, 400);
         }
       },
-      GET: async () => json({ ok: true, contract: "telemetry/v1", accepts: ["json", "ndjson"] }, 200),
+      GET: async () =>
+        json(
+          {
+            ok: true,
+            contract: "telemetry/v1",
+            accepts: ["json", "ndjson"],
+            auth: ["dpop-proof", "bearer-key"],
+          },
+          200,
+        ),
+
     },
   },
 });

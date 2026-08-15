@@ -58,6 +58,7 @@ export const createIngestSource = createServerFn({ method: "POST" })
         name: z.string().min(1).max(80),
         serverId: z.string().uuid().nullable().default(null),
         redactKeys: z.array(z.string().min(1).max(80)).max(50).default([]),
+        mode: z.enum(["asymmetric", "key"]).default("asymmetric"),
       })
       .parse(input),
   )
@@ -65,6 +66,15 @@ export const createIngestSource = createServerFn({ method: "POST" })
     const { createSource } = await import("./telemetry/sources.server");
     return createSource(context.supabase as never, context.userId, data);
   });
+
+export const rotateIngestEnrollment = createServerFn({ method: "POST" })
+  .middleware([requireOperator])
+  .inputValidator((input: unknown) => z.object({ sourceId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { rotateEnrollment } = await import("./telemetry/sources.server");
+    return rotateEnrollment(context.supabase as never, data.sourceId);
+  });
+
 
 export const setIngestSourceState = createServerFn({ method: "POST" })
   .middleware([requireOperator])
