@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as OperatorsRouteImport } from './routes/operators'
+import { Route as TelemetryRouteImport } from './routes/telemetry'
 import { Route as DotwellKnownJwksDotjsonRouteImport } from './routes/[.]well-known/jwks[.]json'
 import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
 import { Route as AuthGithubRouteImport } from './routes/auth.github'
@@ -42,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
 const OperatorsRoute = OperatorsRouteImport.update({
   id: '/operators',
   path: '/operators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TelemetryRoute = TelemetryRouteImport.update({
+  id: '/telemetry',
+  path: '/telemetry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownJwksDotjsonRoute = DotwellKnownJwksDotjsonRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   OperatorsRoute: typeof OperatorsRoute
+  TelemetryRoute: typeof TelemetryRoute
   DotwellKnownJwksDotjsonRoute: typeof DotwellKnownJwksDotjsonRoute
   DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
   OauthConsentRoute: typeof OauthConsentRoute
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/operators'
       fullPath: '/operators'
       preLoaderRoute: typeof OperatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/telemetry': {
+      id: '/telemetry'
+      path: '/telemetry'
+      fullPath: '/telemetry'
+      preLoaderRoute: typeof TelemetryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/jwks.json': {
@@ -432,6 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   OperatorsRoute: OperatorsRoute,
+  TelemetryRoute: TelemetryRoute,
   DotwellKnownJwksDotjsonRoute: DotwellKnownJwksDotjsonRoute,
   DotwellKnownOauthAuthorizationServerRoute:
     DotwellKnownOauthAuthorizationServerRoute,

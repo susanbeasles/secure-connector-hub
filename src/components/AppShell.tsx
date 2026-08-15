@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users } from "lucide-react";
+import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users, Activity } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
