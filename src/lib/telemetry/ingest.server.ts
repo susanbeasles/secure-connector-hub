@@ -60,7 +60,7 @@ async function upsertTrace(source: Source, event: TelemetryEvent) {
     if (meta.environment) patch["environment"] = meta.environment;
     if (meta.status) patch["status"] = meta.status;
     if (meta.endedAt) patch["ended_at"] = meta.endedAt;
-    if (Object.keys(patch).length) await db.from("traces").update(patch).eq("id", existing.id);
+    if (Object.keys(patch).length) await db.from("traces").update(patch as never).eq("id", existing.id);
     return existing.id as string;
   }
 
