@@ -126,8 +126,11 @@ export async function verifyProof(input: {
   method: string;
   url: string;
   accessToken?: string | null;
+  /** Base64url SHA-256 of the request body, bound into the proof as `bdh`. */
+  bodyHash?: string | null;
   requireNonce?: boolean;
 }): Promise<DpopProof> {
+
   if (!input.proof) throw new DpopError("Missing DPoP proof");
   const parts = input.proof.split(".");
   if (parts.length !== 3) throw new DpopError("Malformed DPoP proof");
