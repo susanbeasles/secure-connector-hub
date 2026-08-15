@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users } from "lucide-react";
+import { ShieldCheck, LayoutGrid, Plus, LogOut, Lock, Users, Activity } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               </Link>
               <Link
+                to="/telemetry"
+                className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
+                activeProps={{ className: "bg-secondary text-foreground" }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Activity className="size-4" /> Telemetry
+                </span>
+              </Link>
+              <Link
                 to="/operators"
                 className="rounded-md px-3 py-1.5 transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ className: "bg-secondary text-foreground" }}
@@ -62,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Users className="size-4" /> Operators
                 </span>
               </Link>
+
             </nav>
           ) : null}
           <div className="ml-auto flex items-center gap-3">

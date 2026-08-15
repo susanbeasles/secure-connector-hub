@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as OperatorsRouteImport } from './routes/operators'
+import { Route as TelemetryRouteImport } from './routes/telemetry'
 import { Route as DotwellKnownJwksDotjsonRouteImport } from './routes/[.]well-known/jwks[.]json'
 import { Route as DotwellKnownOauthAuthorizationServerRouteImport } from './routes/[.]well-known/oauth-authorization-server'
 import { Route as AuthGithubRouteImport } from './routes/auth.github'
@@ -27,6 +28,7 @@ import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/
 import { Route as ApiPublicOauthRevokeRouteImport } from './routes/api/public/oauth/revoke'
 import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 import { Route as ApiPublicOauthUpstreamCallbackRouteImport } from './routes/api/public/oauth/upstream-callback'
+import { Route as ApiPublicTelemetryV1EventsRouteImport } from './routes/api/public/telemetry/v1/events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
 const OperatorsRoute = OperatorsRouteImport.update({
   id: '/operators',
   path: '/operators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TelemetryRoute = TelemetryRouteImport.update({
+  id: '/telemetry',
+  path: '/telemetry',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownJwksDotjsonRoute = DotwellKnownJwksDotjsonRouteImport.update({
@@ -121,11 +128,18 @@ const ApiPublicOauthUpstreamCallbackRoute =
     path: '/api/public/oauth/upstream-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTelemetryV1EventsRoute =
+  ApiPublicTelemetryV1EventsRouteImport.update({
+    id: '/api/public/telemetry/v1/events',
+    path: '/api/public/telemetry/v1/events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -141,11 +155,13 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -161,12 +177,14 @@ export interface FileRoutesByTo {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/operators': typeof OperatorsRoute
+  '/telemetry': typeof TelemetryRoute
   '/.well-known/jwks.json': typeof DotwellKnownJwksDotjsonRoute
   '/.well-known/oauth-authorization-server': typeof DotwellKnownOauthAuthorizationServerRoute
   '/auth/github': typeof AuthGithubRoute
@@ -182,6 +200,7 @@ export interface FileRoutesById {
   '/api/public/oauth/revoke': typeof ApiPublicOauthRevokeRoute
   '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/oauth/upstream-callback': typeof ApiPublicOauthUpstreamCallbackRoute
+  '/api/public/telemetry/v1/events': typeof ApiPublicTelemetryV1EventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,6 +208,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -204,11 +224,13 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -224,11 +246,13 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/events'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/operators'
+    | '/telemetry'
     | '/.well-known/jwks.json'
     | '/.well-known/oauth-authorization-server'
     | '/auth/github'
@@ -244,12 +268,14 @@ export interface FileRouteTypes {
     | '/api/public/oauth/revoke'
     | '/api/public/oauth/token'
     | '/api/public/oauth/upstream-callback'
+    | '/api/public/telemetry/v1/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   OperatorsRoute: typeof OperatorsRoute
+  TelemetryRoute: typeof TelemetryRoute
   DotwellKnownJwksDotjsonRoute: typeof DotwellKnownJwksDotjsonRoute
   DotwellKnownOauthAuthorizationServerRoute: typeof DotwellKnownOauthAuthorizationServerRoute
   OauthConsentRoute: typeof OauthConsentRoute
@@ -264,6 +290,7 @@ export interface RootRouteChildren {
   ApiPublicOauthRevokeRoute: typeof ApiPublicOauthRevokeRoute
   ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
   ApiPublicOauthUpstreamCallbackRoute: typeof ApiPublicOauthUpstreamCallbackRoute
+  ApiPublicTelemetryV1EventsRoute: typeof ApiPublicTelemetryV1EventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -287,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/operators'
       fullPath: '/operators'
       preLoaderRoute: typeof OperatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/telemetry': {
+      id: '/telemetry'
+      path: '/telemetry'
+      fullPath: '/telemetry'
+      preLoaderRoute: typeof TelemetryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/jwks.json': {
@@ -394,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthUpstreamCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/telemetry/v1/events': {
+      id: '/api/public/telemetry/v1/events'
+      path: '/api/public/telemetry/v1/events'
+      fullPath: '/api/public/telemetry/v1/events'
+      preLoaderRoute: typeof ApiPublicTelemetryV1EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -411,6 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   OperatorsRoute: OperatorsRoute,
+  TelemetryRoute: TelemetryRoute,
   DotwellKnownJwksDotjsonRoute: DotwellKnownJwksDotjsonRoute,
   DotwellKnownOauthAuthorizationServerRoute:
     DotwellKnownOauthAuthorizationServerRoute,
@@ -427,6 +469,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicOauthRevokeRoute: ApiPublicOauthRevokeRoute,
   ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
   ApiPublicOauthUpstreamCallbackRoute: ApiPublicOauthUpstreamCallbackRoute,
+  ApiPublicTelemetryV1EventsRoute: ApiPublicTelemetryV1EventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

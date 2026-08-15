@@ -538,6 +538,62 @@ export type Database = {
         }
         Relationships: []
       }
+      ingest_sources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          disabled: boolean
+          event_count: number
+          id: string
+          key_hash: string
+          key_prefix: string
+          kind: string
+          last_seen_at: string | null
+          name: string
+          redact_keys: string[]
+          server_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          disabled?: boolean
+          event_count?: number
+          id?: string
+          key_hash: string
+          key_prefix: string
+          kind?: string
+          last_seen_at?: string | null
+          name: string
+          redact_keys?: string[]
+          server_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          disabled?: boolean
+          event_count?: number
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          kind?: string
+          last_seen_at?: string | null
+          name?: string
+          redact_keys?: string[]
+          server_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingest_sources_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instance_claim: {
         Row: {
           claimed_at: string | null
@@ -622,6 +678,39 @@ export type Database = {
           id?: string
           used_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      model_prices: {
+        Row: {
+          cached_per_mtok: number
+          created_at: string
+          effective_from: string
+          id: string
+          input_per_mtok: number
+          model: string
+          output_per_mtok: number
+          provider: string
+        }
+        Insert: {
+          cached_per_mtok?: number
+          created_at?: string
+          effective_from?: string
+          id?: string
+          input_per_mtok?: number
+          model: string
+          output_per_mtok?: number
+          provider: string
+        }
+        Update: {
+          cached_per_mtok?: number
+          created_at?: string
+          effective_from?: string
+          id?: string
+          input_per_mtok?: number
+          model?: string
+          output_per_mtok?: number
+          provider?: string
         }
         Relationships: []
       }
@@ -1004,6 +1093,247 @@ export type Database = {
         }
         Relationships: []
       }
+      span_costs: {
+        Row: {
+          cached_price: number
+          cached_tokens: number
+          cost_usd: number
+          input_price: number
+          input_tokens: number
+          model: string
+          occurred_at: string
+          output_price: number
+          output_tokens: number
+          provider: string
+          reasoning_tokens: number
+          span_id: string
+          trace_id: string
+        }
+        Insert: {
+          cached_price?: number
+          cached_tokens?: number
+          cost_usd?: number
+          input_price?: number
+          input_tokens?: number
+          model?: string
+          occurred_at?: string
+          output_price?: number
+          output_tokens?: number
+          provider?: string
+          reasoning_tokens?: number
+          span_id: string
+          trace_id: string
+        }
+        Update: {
+          cached_price?: number
+          cached_tokens?: number
+          cost_usd?: number
+          input_price?: number
+          input_tokens?: number
+          model?: string
+          occurred_at?: string
+          output_price?: number
+          output_tokens?: number
+          provider?: string
+          reasoning_tokens?: number
+          span_id?: string
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "span_costs_span_id_fkey"
+            columns: ["span_id"]
+            isOneToOne: true
+            referencedRelation: "spans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "span_costs_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      span_payloads: {
+        Row: {
+          archived_at: string | null
+          args: Json | null
+          bytes: number
+          context_window: Json | null
+          created_at: string
+          input: string | null
+          output: string | null
+          result: Json | null
+          span_id: string
+          system_prompt: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          args?: Json | null
+          bytes?: number
+          context_window?: Json | null
+          created_at?: string
+          input?: string | null
+          output?: string | null
+          result?: Json | null
+          span_id: string
+          system_prompt?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          args?: Json | null
+          bytes?: number
+          context_window?: Json | null
+          created_at?: string
+          input?: string | null
+          output?: string | null
+          result?: Json | null
+          span_id?: string
+          system_prompt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "span_payloads_span_id_fkey"
+            columns: ["span_id"]
+            isOneToOne: true
+            referencedRelation: "spans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spans: {
+        Row: {
+          attributes: Json
+          created_at: string
+          duration_ms: number
+          error: string | null
+          external_id: string
+          id: string
+          kind: string
+          model: string
+          name: string
+          normalized: boolean
+          parent_external_id: string | null
+          provider: string
+          raw: Json
+          skill: string | null
+          source_id: string
+          started_at: string
+          status: string
+          status_code: number | null
+          tool_name: string | null
+          trace_id: string
+        }
+        Insert: {
+          attributes?: Json
+          created_at?: string
+          duration_ms?: number
+          error?: string | null
+          external_id: string
+          id?: string
+          kind?: string
+          model?: string
+          name?: string
+          normalized?: boolean
+          parent_external_id?: string | null
+          provider?: string
+          raw?: Json
+          skill?: string | null
+          source_id: string
+          started_at?: string
+          status?: string
+          status_code?: number | null
+          tool_name?: string | null
+          trace_id: string
+        }
+        Update: {
+          attributes?: Json
+          created_at?: string
+          duration_ms?: number
+          error?: string | null
+          external_id?: string
+          id?: string
+          kind?: string
+          model?: string
+          name?: string
+          normalized?: boolean
+          parent_external_id?: string | null
+          provider?: string
+          raw?: Json
+          skill?: string | null
+          source_id?: string
+          started_at?: string
+          status?: string
+          status_code?: number | null
+          tool_name?: string | null
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spans_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ingest_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spans_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telemetry_archive: {
+        Row: {
+          batch: Json | null
+          bytes: number
+          content_hash: string
+          created_at: string
+          day: string
+          event_count: number
+          id: string
+          object_key: string
+          source_id: string | null
+          stored_in: string
+        }
+        Insert: {
+          batch?: Json | null
+          bytes?: number
+          content_hash: string
+          created_at?: string
+          day: string
+          event_count?: number
+          id?: string
+          object_key: string
+          source_id?: string | null
+          stored_in?: string
+        }
+        Update: {
+          batch?: Json | null
+          bytes?: number
+          content_hash?: string
+          created_at?: string
+          day?: string
+          event_count?: number
+          id?: string
+          object_key?: string
+          source_id?: string | null
+          stored_in?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telemetry_archive_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ingest_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tools: {
         Row: {
           approval: Database["public"]["Enums"]["approval_mode"]
@@ -1062,6 +1392,77 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traces: {
+        Row: {
+          actor: string
+          attributes: Json
+          client: string
+          created_at: string
+          ended_at: string | null
+          environment: string
+          error_count: number
+          external_id: string
+          id: string
+          intent: string
+          name: string
+          source_id: string
+          span_count: number
+          started_at: string
+          status: string
+          total_cost_usd: number
+          total_tokens: number
+          updated_at: string
+        }
+        Insert: {
+          actor?: string
+          attributes?: Json
+          client?: string
+          created_at?: string
+          ended_at?: string | null
+          environment?: string
+          error_count?: number
+          external_id: string
+          id?: string
+          intent?: string
+          name?: string
+          source_id: string
+          span_count?: number
+          started_at?: string
+          status?: string
+          total_cost_usd?: number
+          total_tokens?: number
+          updated_at?: string
+        }
+        Update: {
+          actor?: string
+          attributes?: Json
+          client?: string
+          created_at?: string
+          ended_at?: string | null
+          environment?: string
+          error_count?: number
+          external_id?: string
+          id?: string
+          intent?: string
+          name?: string
+          source_id?: string
+          span_count?: number
+          started_at?: string
+          status?: string
+          total_cost_usd?: number
+          total_tokens?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traces_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "ingest_sources"
             referencedColumns: ["id"]
           },
         ]
