@@ -180,6 +180,11 @@ export async function verifyProof(input: {
     }
   }
 
+  if (input.bodyHash && claims["bdh"] !== input.bodyHash) {
+    throw new DpopError("Proof is bound to a different payload");
+  }
+
+
   if (input.requireNonce && !(await nonceValid(claims["nonce"] as string | undefined))) {
     throw new DpopError("A fresh server nonce is required", "use_dpop_nonce");
   }
