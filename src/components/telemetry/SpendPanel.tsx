@@ -65,8 +65,9 @@ export function SpendPanel({ windowHours }: { windowHours: number }) {
         <Stat
           label="Errors"
           value={count(t.errors)}
-          hint={patterns.data ? `${Math.round(patterns.data.cacheRatio * 100)}% cache ratio` : undefined}
+          hint={`${Math.round((patterns.data?.cacheRatio ?? 0) * 100)}% cache ratio`}
         />
+
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
